@@ -21,11 +21,12 @@ const static char *TAG = "JOYSTICK";
 #define JOYSTICK_ADC_ATTEN ADC_ATTEN_DB_11
 #define JOYSTICK_ADC_BITWIDTH ADC_BITWIDTH_DEFAULT
 
-static int adc_x, adc_x_last = 0;
-static int adc_y, adc_y_last = 0;
 
 void read_joystick(void *params)
 {
+    int adc_x, adc_x_last = 0;
+    int adc_y, adc_y_last = 0;
+    
     Unit unit = adc_init_unit(JOYSTICK_ADC_UNIT);
 
     adc_init_channel(JOYSTICK_X_CHANNEL, JOYSTICK_ADC_BITWIDTH, JOYSTICK_ADC_ATTEN, &unit);

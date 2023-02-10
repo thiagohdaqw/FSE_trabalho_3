@@ -11,6 +11,7 @@
 #include "esp_adc/adc_cali_scheme.h"
 
 #include "adc.h"
+#include "temperature_analogic.h"
 
 const static char *TAG = "TEMPERATURE ANALOGIC";
 
@@ -20,10 +21,9 @@ const static char *TAG = "TEMPERATURE ANALOGIC";
 #define TEMP_ANALOGIC_ADC_BITWIDTH          ADC_BITWIDTH_DEFAULT
 
 
-static int temperature;
-
 void read_temperature_analogic(void *params)
 {
+    int temperature;
     Unit unit = adc_init_unit(TEMP_ANALOGIC_ADC_UNIT);
 
     adc_init_channel(TEMP_ANALOGIC_CHANNEL, TEMP_ANALOGIC_ADC_BITWIDTH, TEMP_ANALOGIC_ADC_ATTEN, &unit);
