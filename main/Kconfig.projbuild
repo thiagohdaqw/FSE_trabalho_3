@@ -1,0 +1,27 @@
+menu "Aplicação"
+
+    choice APP_MODE
+        bool "Selecione o modo da aplicação"
+        default JOYSTICK
+        
+        config CAR
+            bool "Modo de controle do carrinho"
+        config JOYSTICK
+            bool "Modo de controle do carrinho por joystick"
+        config MONITOR
+            bool "Modo de controle do monitoramento do carrinho"
+    endchoice
+
+    config WIFI_SSID
+        string "SSID do Wifi"
+        default "myssid"
+
+    config WIFI_PASSWORD
+        string "Senha do Wifi"
+        default "mypassword"
+
+    config MQTT_HOST
+        string "Endereço do servidor MQTT"
+        default "mqt://test"
+    
+endmenu
