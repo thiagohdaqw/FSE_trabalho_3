@@ -26,7 +26,6 @@ static int adc_y, adc_y_last = 0;
 
 void read_joystick(void *params)
 {
-    printf("hello\n");
     Unit unit = adc_init_unit(JOYSTICK_ADC_UNIT);
 
     adc_init_channel(JOYSTICK_X_CHANNEL, JOYSTICK_ADC_BITWIDTH, JOYSTICK_ADC_ATTEN, &unit);
