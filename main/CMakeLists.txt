@@ -5,5 +5,7 @@ idf_component_register(SRCS "main.c"
                             "temperature_dht11.c" 
                             "motor.c"
                             "states.h"
+                            "infrared.c"
+                            "ir_encoder.c"
                     INCLUDE_DIRS "."
                     REQUIRES "esp32-DHT11" "esp_adc")
