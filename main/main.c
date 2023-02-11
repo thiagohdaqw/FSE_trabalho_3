@@ -6,6 +6,7 @@
 #include "esp_log.h"
 
 #include "joystick.h"
+#include "infrared.h"
 #include "temperature_analogic.h"
 #include "temperature_dht11.h"
 
@@ -27,5 +28,7 @@ void app_main(void)
 
 #ifdef CONFIG_MONITOR
     ESP_LOGI(TAG, "Initing as monitor controller");
+    xTaskCreate(infrared_rx_task, "Infrared RX", 4096, NULL, configMAX_PRIORITIES, NULL);
+    xTaskCreate(infrared_tx_task, "Infrared TX", 4096, NULL, configMAX_PRIORITIES - 1, NULL);
 #endif
 }
