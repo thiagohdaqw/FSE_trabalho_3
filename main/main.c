@@ -22,7 +22,8 @@ void app_main(void)
 #ifdef CONFIG_CAR
     ESP_LOGI(TAG, "Initing as car controller");
     xTaskCreate(&control_motor,"motor", 2048, &joystick, 1, NULL);
-    xTaskCreate(&read_joystick, "Joystick", 2048, &joystick, 1, NULL);
+    //xTaskCreate(&read_joystick, "Joystick", 2048, &joystick, 1, NULL);
+    xTaskCreate(infrared_rx_task, "Infrared RX", 4096, &joystick, configMAX_PRIORITIES, NULL);
 #endif
 
 #ifdef CONFIG_JOYSTICK
@@ -35,6 +36,6 @@ void app_main(void)
 #ifdef CONFIG_MONITOR
     ESP_LOGI(TAG, "Initing as monitor controller");
     xTaskCreate(infrared_rx_task, "Infrared RX", 4096, NULL, configMAX_PRIORITIES, NULL);
-    xTaskCreate(infrared_tx_task, "Infrared TX", 4096, NULL, configMAX_PRIORITIES - 1, NULL);
+    // xTaskCreate(infrared_tx_task, "Infrared TX", 4096, NULL, configMAX_PRIORITIES - 1, NULL);
 #endif
 }
