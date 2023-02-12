@@ -31,7 +31,7 @@ void read_joystick(void *params)
     Joystick *joystick = (Joystick *)params;
     int adc_x, adc_x_last = 0, x, x_percent;
     int adc_y, adc_y_last = 0, y, y_percent;
-    
+
     Unit unit = adc_init_unit(JOYSTICK_ADC_UNIT);
 
     adc_init_channel(JOYSTICK_X_CHANNEL, JOYSTICK_ADC_BITWIDTH, JOYSTICK_ADC_ATTEN, &unit);
@@ -54,7 +54,7 @@ void read_joystick(void *params)
         y = adc_y - 2048 + 135;
 
         if (x > JOYSTICK_SENSIBILITY) {
-            x_percent = x * 100 / 2161; 
+            x_percent = x * 100 / 2161;
         } else if (x < -JOYSTICK_SENSIBILITY) {
             x_percent = x * 100 / 1933;
         } else {

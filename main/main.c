@@ -28,14 +28,15 @@ void app_main(void)
 
 #ifdef CONFIG_JOYSTICK
     ESP_LOGI(TAG, "Initing as joystick controller");
-    xTaskCreate(&read_joystick, "Joystick", 2048, NULL, 1, NULL);
-    xTaskCreate(&read_temperature_analogic, "Analogic Temperature", 2048, NULL, 1, NULL);
-    xTaskCreate(&read_temperature_dht11, "DHT11 Temperature", 2048, NULL, 1, NULL);
+    xTaskCreate(infrared_tx_task, "Infrared TX", 4096, &joystick, configMAX_PRIORITIES - 1, NULL);
+    xTaskCreate(&read_joystick, "Joystick", 2048, &joystick, 1, NULL);
 #endif
 
 #ifdef CONFIG_MONITOR
     ESP_LOGI(TAG, "Initing as monitor controller");
+    // xTaskCreate(&read_temperature_dht11, "DHT11 Temperature", 2048, NULL, 1, NULL);
+    // xTaskCreate(&read_temperature_analogic, "Analogic Temperature", 2048, NULL, 1, NULL);
+    xTaskCreate(infrared_tx_task, "Infrared TX", 4096, &joystick, configMAX_PRIORITIES - 1, NULL);
     xTaskCreate(infrared_rx_task, "Infrared RX", 4096, NULL, configMAX_PRIORITIES, NULL);
-    // xTaskCreate(infrared_tx_task, "Infrared TX", 4096, NULL, configMAX_PRIORITIES - 1, NULL);
 #endif
 }
