@@ -1,10 +1,11 @@
-#include "esp_event.h"
-#include "esp_netif.h"
-#include "esp_system.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "esp_event.h"
+#include "esp_netif.h"
+#include "esp_system.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -24,7 +25,7 @@
 #define MQTT_HOST CONFIG_MQTT_HOST
 #define MQTT_TOKEN CONFIG_MQTT_TOKEN
 
-extern SemaphoreHandle_t conexaoMQTTSemaphore;
+extern SemaphoreHandle_t mqttConnectionSemaphore;
 esp_mqtt_client_handle_t client;
 
 static void log_error_if_nonzero(const char *message, int error_code) {
@@ -41,7 +42,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     switch ((esp_mqtt_event_id_t)event_id) {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-        xSemaphoreGive(conexaoMQTTSemaphore);
+        xSemaphoreGive(mqttConnectionSemaphore);
         msg_id = esp_mqtt_client_subscribe(client, "dispositivos/#", 0);
         break;
     case MQTT_EVENT_DISCONNECTED:
@@ -89,4 +90,12 @@ void mqtt_start() {
 void mqtt_send_message(char *topic, char *msg) {
     int message_id = esp_mqtt_client_publish(client, topic, msg, 0, 1, 0);
     ESP_LOGI(TAG, "Mensagem enviada, ID: %d", message_id);
+}
+
+void mqtt_send_telemetry(char *msg) {
+    mqtt_send_message("v1/devices/me/telemetry", msg);
+}
+
+void mqtt_send_attributes(char *msg) {
+    mqtt_send_message("v1/devices/me/attributes", msg);
 }

@@ -8,8 +8,6 @@ menu "Aplicação"
             bool "Modo de controle do carrinho"
         config JOYSTICK
             bool "Modo de controle do carrinho por joystick"
-        config MONITOR
-            bool "Modo de controle do monitoramento do carrinho"
     endchoice
 
     config WIFI_SSID

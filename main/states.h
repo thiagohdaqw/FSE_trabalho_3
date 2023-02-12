@@ -1,13 +1,14 @@
 #ifndef __STATES_H__
 #define __STATES_H__
 
-typedef struct {
-    int x_percent;
-    int y_percent;
-} Joystick;
+#include "motor.h"
+#include "joystick.h"
 
 typedef struct {
     Joystick joystick;
+    Motor motor;
+    int temperature;
+    int humidity;
 } State;
 
 #endif

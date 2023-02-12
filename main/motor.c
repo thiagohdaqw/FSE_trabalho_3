@@ -6,6 +6,7 @@
 #include "soc/soc_caps.h"
 
 #include "states.h"
+#include "motor.h"
 
 #define MOTOR_A_PWM 23
 #define MOTOR_A1 22
@@ -16,8 +17,9 @@
 #define MOTOR_B2 5
 
 void motor_control(void *params) {
-    Joystick *joystick = (Joystick *)params;
-    int duty = 0;
+    State *state = (State *)params;
+    Joystick *joystick = &state->joystick;
+    Motor *motor = &state->motor;
 
     gpio_set_direction(MOTOR_A1, GPIO_MODE_OUTPUT);
     gpio_set_direction(MOTOR_A2, GPIO_MODE_OUTPUT);
@@ -53,42 +55,50 @@ void motor_control(void *params) {
 
     while (true) {
         if (joystick->y_percent != 0) {
-            duty = abs(joystick->y_percent) * 255 / 100;
+            motor->duty = abs(joystick->y_percent) * 255 / 100;
             if (joystick->y_percent > 0) {
                 gpio_set_level(MOTOR_A1, 1);
                 gpio_set_level(MOTOR_A2, 0);
                 gpio_set_level(MOTOR_B1, 1);
                 gpio_set_level(MOTOR_B2, 0);
+                motor->y = 1;
             } else {
                 gpio_set_level(MOTOR_A1, 0);
                 gpio_set_level(MOTOR_A2, 1);
                 gpio_set_level(MOTOR_B1, 0);
                 gpio_set_level(MOTOR_B2, 1);
+                motor->y = -1;
             }
+            motor->x = 0;
         } else if (joystick->x_percent != 0) {
-            duty = abs(joystick->x_percent) * 255 / 100;
+            motor->duty = abs(joystick->x_percent) * 255 / 100;
             if (joystick->x_percent > 0) {
                 gpio_set_level(MOTOR_A1, 0);
                 gpio_set_level(MOTOR_A2, 1);
                 gpio_set_level(MOTOR_B1, 1);
                 gpio_set_level(MOTOR_B2, 0);
+                motor->x = 1;
             } else {
                 gpio_set_level(MOTOR_A1, 1);
                 gpio_set_level(MOTOR_A2, 0);
                 gpio_set_level(MOTOR_B1, 0);
                 gpio_set_level(MOTOR_B2, 1);
+                motor->x = -1;
             }
+            motor->y = 0;
         } else {
-            duty = 0;
+            motor->duty = 0;
+            motor->x = 0;
+            motor->y = 0;
         }
 
-        ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty);
+        ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, motor->duty);
         ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
 
-        ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, duty);
+        ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, motor->duty);
         ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
 
-        ESP_LOGI("MOTOR", "Duty %d", duty);
+        ESP_LOGI("MOTOR", "Duty %d", motor->duty);
 
         vTaskDelay(pdMS_TO_TICKS(500));
     }
