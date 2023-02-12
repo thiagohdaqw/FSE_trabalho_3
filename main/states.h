@@ -2,8 +2,8 @@
 #define __STATES_H__
 
 typedef struct {
-    int x_percent;
-    int y_percent;
+    int8_t x_percent;
+    int8_t y_percent;
 } Joystick;
 
 
