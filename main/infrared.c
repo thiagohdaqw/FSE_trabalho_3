@@ -3,7 +3,7 @@
  *
  * SPDX-License-Identifier: Unlicense OR CC0-1.0
  */
-
+#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -12,6 +12,7 @@
 #include "driver/rmt_rx.h"
 #include "infrared.h"
 #include "ir_encoder.h"
+#include "states.h"
 
 #define EXAMPLE_IR_RESOLUTION_HZ 1000000 // 1MHz resolution, 1 tick = 1us
 #define EXAMPLE_IR_TX_GPIO_NUM 17
@@ -130,7 +131,7 @@ static bool nec_parse_frame_repeat(rmt_symbol_word_t *rmt_nec_symbols)
 /**
  * @brief Decode RMT symbols into NEC scan code and print the result
  */
-static void example_parse_nec_frame(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num)
+static void example_parse_nec_frame(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num, Joystick *joystick)
 {
     printf("NEC frame start---\r\n");
     // for (size_t i = 0; i < symbol_num; i++) {
@@ -142,9 +143,12 @@ static void example_parse_nec_frame(rmt_symbol_word_t *rmt_nec_symbols, size_t s
     switch (symbol_num)
     {
     case 34: // NEC normal frame
-        if (nec_parse_frame(rmt_nec_symbols))
+        if (nec_parse_frame(rmt_nec_symbols) && joystick != NULL)
         {
-            printf("Address=%04X, Command=%04X\r\n\r\n", s_nec_code_address, s_nec_code_command);
+            joystick->y_percent = s_nec_code_command & 0xFF;
+            joystick->x_percent = (s_nec_code_command & 0xFEFE) >> 8;
+            
+            printf("Address=%04X, Command=%d, X=%d, Y=%d\r\n\r\n", s_nec_code_address, s_nec_code_command, joystick->x_percent, joystick->y_percent);
         }
         break;
     case 2: // NEC repeat frame
@@ -213,14 +217,13 @@ static bool example_rmt_rx_done_callback(rmt_channel_handle_t channel, const rmt
             };
             ESP_ERROR_CHECK(rmt_transmit(tx_channel, nec_encoder, &scan_code, sizeof(scan_code), &transmit_config));
 
-    vTaskDelay(1000 / portTICK_PERIOD_MS);
-
+            vTaskDelay(pdMS_TO_TICKS(500));
         }
     }
 
 void infrared_rx_task(void *params)
 {
-
+    Joystick *joystick = (Joystick *)params;
     ESP_LOGI(TAG, "create RMT RX channel");
     rmt_rx_channel_config_t rx_channel_cfg = {
         .clk_src = RMT_CLK_SRC_DEFAULT,
@@ -257,11 +260,11 @@ void infrared_rx_task(void *params)
         if (xQueueReceive(receive_queue, &rx_data, pdMS_TO_TICKS(1000)) == pdPASS)
         {
             // parse the receive symbols and print the result
-            example_parse_nec_frame(rx_data.received_symbols, rx_data.num_symbols);
+            example_parse_nec_frame(rx_data.received_symbols, rx_data.num_symbols, NULL);
             // start receive again
             ESP_ERROR_CHECK(rmt_receive(rx_channel, raw_symbols, sizeof(raw_symbols), &receive_config));
 
-            example_parse_nec_frame(rx_data.received_symbols, rx_data.num_symbols);
+            example_parse_nec_frame(rx_data.received_symbols, rx_data.num_symbols, joystick);
         }
     }
 
