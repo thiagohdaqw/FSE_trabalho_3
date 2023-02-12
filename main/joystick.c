@@ -9,6 +9,10 @@
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
+#include "driver/gpio.h"
+#include "esp_sleep.h"
+#include "driver/rtc_io.h"
+#include "esp32/rom/uart.h"
 
 #include "joystick.h"
 #include "adc.h"
@@ -19,12 +23,13 @@ const static char *TAG = "JOYSTICK";
 #define JOYSTICK_ADC_UNIT ADC_UNIT_1
 #define JOYSTICK_X_CHANNEL ADC_CHANNEL_3
 #define JOYSTICK_Y_CHANNEL ADC_CHANNEL_6
+#define JOYSTICK_SWITCH 23
 #define JOYSTICK_ADC_ATTEN ADC_ATTEN_DB_11
 #define JOYSTICK_ADC_BITWIDTH ADC_BITWIDTH_DEFAULT
 #define JOYSTICK_SENSIBILITY 100
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
-#define MAX(a,b) (((a)>(b))?(a):(b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 void read_joystick(void *params)
 {
@@ -37,10 +42,28 @@ void read_joystick(void *params)
     adc_init_channel(JOYSTICK_X_CHANNEL, JOYSTICK_ADC_BITWIDTH, JOYSTICK_ADC_ATTEN, &unit);
     adc_init_channel(JOYSTICK_Y_CHANNEL, JOYSTICK_ADC_BITWIDTH, JOYSTICK_ADC_ATTEN, &unit);
 
+    gpio_set_direction(JOYSTICK_SWITCH, GPIO_MODE_INPUT);
+    gpio_pulldown_dis(JOYSTICK_SWITCH);
+    gpio_pullup_en(JOYSTICK_SWITCH);
+    gpio_wakeup_enable(JOYSTICK_SWITCH, GPIO_INTR_LOW_LEVEL);
+    esp_sleep_enable_gpio_wakeup();
+
     adc_init_calibration(&unit, JOYSTICK_ADC_ATTEN, JOYSTICK_ADC_BITWIDTH);
 
     while (true)
     {
+        if (gpio_get_level(JOYSTICK_SWITCH) == 0)
+        {
+            do
+            {
+                vTaskDelay(pdMS_TO_TICKS(10));
+            } while (gpio_get_level(JOYSTICK_SWITCH) == 0);
+
+            ESP_LOGW(TAG, "Starting low energy mode");
+            uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
+            esp_light_sleep_start();
+        }
+
         adc_x = adc_read(&unit, JOYSTICK_X_CHANNEL);
         adc_y = adc_read(&unit, JOYSTICK_Y_CHANNEL);
 
@@ -53,38 +76,52 @@ void read_joystick(void *params)
         x = adc_x - 2048 + 115;
         y = adc_y - 2048 + 135;
 
-        if (x > JOYSTICK_SENSIBILITY) {
+        if (x > JOYSTICK_SENSIBILITY)
+        {
             x_percent = x * 100 / 2161;
-        } else if (x < -JOYSTICK_SENSIBILITY) {
+        }
+        else if (x < -JOYSTICK_SENSIBILITY)
+        {
             x_percent = x * 100 / 1933;
-        } else {
+        }
+        else
+        {
             x_percent = 0;
         }
-        if (y > JOYSTICK_SENSIBILITY) {
+        if (y > JOYSTICK_SENSIBILITY)
+        {
             y_percent = y * 100 / 2181;
-        } else if (y < -JOYSTICK_SENSIBILITY) {
+        }
+        else if (y < -JOYSTICK_SENSIBILITY)
+        {
             y_percent = y * 100 / 1913;
-        } else {
+        }
+        else
+        {
             y_percent = 0;
         }
 
-        if (abs(x_percent) > 0 && abs(x_percent) < 30) {
+        if (abs(x_percent) > 0 && abs(x_percent) < 30)
+        {
             x_percent = 30 * (x_percent > 0) - (x_percent < 0);
         }
-        if (abs(x_percent) > 100) {
+        if (abs(x_percent) > 100)
+        {
             x_percent = 100 * (x_percent > 0) - (x_percent < 0);
         }
-        if (abs(y_percent) > 0 && abs(y_percent) < 30) {
+        if (abs(y_percent) > 0 && abs(y_percent) < 30)
+        {
             y_percent = 30 * (y_percent > 0) - (y_percent < 0);
         }
-        if (abs(y_percent) > 100) {
+        if (abs(y_percent) > 100)
+        {
             y_percent = 100 * (y_percent > 0) - (y_percent < 0);
         }
 
         joystick->x_percent = x_percent;
         joystick->y_percent = y_percent;
 
-        ESP_LOGI(TAG, "X: %d %d percent, Y: %d %d percent", x, x_percent, y, y_percent);
+        ESP_LOGI(TAG, "X: %d percent, Y: %d percent", x_percent, y_percent);
 
         vTaskDelay(pdMS_TO_TICKS(250));
     }
