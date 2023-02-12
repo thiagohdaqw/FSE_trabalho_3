@@ -19,7 +19,13 @@ menu "Aplicação"
     config WIFI_PASSWORD
         string "Senha do Wifi"
         default "mypassword"
-
+    
+    config WIFI_MAXIMUM_RETRY
+        int "Número máximo de tentativas de conexão"
+        default 5
+        help
+            Configure o valor máximo de tentativas de conexão.
+    
     config MQTT_HOST
         string "Endereço do servidor MQTT"
         default "mqt://test"
