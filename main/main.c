@@ -11,7 +11,7 @@
 #include "temperature_dht11.h"
 #include "motor.h"
 #include "states.h"
-
+#include "ledRGB.h"
 const static char *TAG = "APP";
 
 Joystick joystick;
@@ -24,6 +24,7 @@ void app_main(void)
     xTaskCreate(&control_motor,"motor", 2048, &joystick, 1, NULL);
     //xTaskCreate(&read_joystick, "Joystick", 2048, &joystick, 1, NULL);
     xTaskCreate(infrared_rx_task, "Infrared RX", 4096, &joystick, configMAX_PRIORITIES, NULL);
+    xTaskCreate(&ledMagenta, "control_ledRGB", 2048, NULL, 1, NULL);
 #endif
 
 #ifdef CONFIG_JOYSTICK
