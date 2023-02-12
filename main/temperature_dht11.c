@@ -18,7 +18,7 @@ const static char *TAG = "TEMPERATURE DHT11";
 
 #define TEMP_DHT11_GPIO 25
 
-void read_temperature_dht11(void *params)
+void temperature_dht11_read(void *params)
 {
     DHT11_init(TEMP_DHT11_GPIO);
     struct dht11_reading dht;

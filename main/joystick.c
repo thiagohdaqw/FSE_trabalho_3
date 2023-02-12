@@ -26,7 +26,7 @@ const static char *TAG = "JOYSTICK";
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-void read_joystick(void *params)
+void joystick_read(void *params)
 {
     Joystick *joystick = (Joystick *)params;
     int adc_x, adc_x_last = 0, x, x_percent;

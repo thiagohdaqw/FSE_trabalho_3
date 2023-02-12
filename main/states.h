@@ -6,5 +6,8 @@ typedef struct {
     int y_percent;
 } Joystick;
 
+typedef struct {
+    Joystick joystick;
+} State;
 
 #endif

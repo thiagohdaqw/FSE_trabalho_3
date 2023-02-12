@@ -1,6 +1,6 @@
 #ifndef __MOTOR_H__
 #define __MOTOR_H__
 
-void control_motor(void *params);
+void motor_control(void *params);
 
 #endif

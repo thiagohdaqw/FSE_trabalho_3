@@ -28,6 +28,8 @@ menu "Aplicação"
     
     config MQTT_HOST
         string "Endereço do servidor MQTT"
-        default "mqt://test"
-    
+        default "mqt://host"
+    config MQTT_TOKEN
+        string "Endereço do servidor MQTT"
+        default "token_de_acesso"
 endmenu
