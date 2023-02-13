@@ -42,7 +42,7 @@ void app_main(void) {
 
 #ifdef CONFIG_JOYSTICK
     ESP_LOGI(TAG, "initiating as joystick controller");
-    xTaskCreate(&joystick_read, "Joystick", 2048, NULL, 1, NULL);
+    xTaskCreate(&joystick_read, "Joystick", 2048, &state.joystick, 1, NULL);
     // xTaskCreate(&infrared_tx_task, "Infrared TX", 4096, NULL, configMAX_PRIORITIES - 1, NULL);
 #endif
 }
