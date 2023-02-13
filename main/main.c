@@ -38,11 +38,12 @@ void app_main(void) {
 #ifdef CONFIG_CAR
     ESP_LOGI(TAG, "initiating as car controller");
     xTaskCreate(&motor_control, "motor", 2048, &state.joystick, 1, NULL);
+    xTaskCreate(infrared_rx_task, "Infrared RX", 4096, &state.joystick, configMAX_PRIORITIES, NULL);
 #endif
 
 #ifdef CONFIG_JOYSTICK
     ESP_LOGI(TAG, "initiating as joystick controller");
-    xTaskCreate(&joystick_read, "Joystick", 2048, &state.joystick, 1, NULL);
     // xTaskCreate(&infrared_tx_task, "Infrared TX", 4096, NULL, configMAX_PRIORITIES - 1, NULL);
+    xTaskCreate(&joystick_read, "Joystick", 2048, &state.joystick, 1, NULL);
 #endif
 }

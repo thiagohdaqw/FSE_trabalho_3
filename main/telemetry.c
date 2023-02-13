@@ -44,26 +44,6 @@ void telemetry_send_car(State *state) {
     mqtt_send_telemetry(message);
 }
 
-void telemetry_send_joystick_status(int online) {
-    char message[30];
-
-    sprintf(message,
-        "{\"joystick_online\":%d}",
-        online
-    );
-    mqtt_send_attributes(message);
-}
-
-void telemetry_send_car_status(int online) {
-    char message[30];
-
-    sprintf(message,
-        "{\"car_online\":%d}",
-        online
-    );
-    mqtt_send_attributes(message);
-}
-
 void telemetry_send_car_attributes(State *state) {
     char message[50];
 
@@ -87,6 +67,28 @@ void telemetry_send_joystick_attributes(State *state) {
     mqtt_send_attributes(message);
 }
 
+void telemetry_send_joystick_status(int online, State *state) {
+    char message[30];
+
+    sprintf(message,
+        "{\"joystick_online\":%d}",
+        online
+    );
+    mqtt_send_attributes(message);
+    telemetry_send_joystick_attributes(state);
+}
+
+void telemetry_send_car_status(int online, State *state) {
+    char message[30];
+
+    sprintf(message,
+        "{\"car_online\":%d}",
+        online
+    );
+    mqtt_send_attributes(message);
+    telemetry_send_car_attributes(state);
+}
+
 void telemetry_send_joystick(State *state) {
     char message[100];
 
@@ -103,10 +105,10 @@ static void telemetry_loop(void *params) {
 
     if (xSemaphoreTake(mqttConnectionSemaphore, portMAX_DELAY)) {
 #if CONFIG_CAR
-        telemetry_send_car_status(true);
+        telemetry_send_car_status(true, state);
 #endif
 #if CONFIG_JOYSTICK
-        telemetry_send_joystick_status(true);
+        telemetry_send_joystick_status(true, state);
 #endif
 
         while (true) {
@@ -132,9 +134,10 @@ void telemetry_init(State *state) {
     wifi_start();
 
 #if CONFIG_CAR
-    temperature_init();
+    // temperature_init();
 #endif
 
+    ESP_LOGI(TAG, "initiating Telemetry");
     xTaskCreate(&mqtt_loop, "MQTT Loop", 2048, NULL, 1, NULL);
     xTaskCreate(&telemetry_loop, "Telemetry Loop", 2048, state, 1, NULL);
 }
