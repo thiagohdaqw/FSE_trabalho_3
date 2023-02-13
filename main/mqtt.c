@@ -19,6 +19,7 @@
 #include "esp_log.h"
 #include "mqtt_client.h"
 
+#include "commands.h"
 #include "mqtt.h"
 
 #define TAG "MQTT"
@@ -43,7 +44,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         xSemaphoreGive(mqttConnectionSemaphore);
-        msg_id = esp_mqtt_client_subscribe(client, "dispositivos/#", 0);
+        msg_id = esp_mqtt_client_subscribe(client, "v1/devices/me/rpc/request/+", 0);
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
@@ -62,8 +63,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         break;
     case MQTT_EVENT_DATA:
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-        printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-        printf("DATA=%.*s\r\n", event->data_len, event->data);
+        commands_handle_request(event);
         break;
     case MQTT_EVENT_ERROR:
         ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -92,10 +92,13 @@ void mqtt_send_message(char *topic, char *msg) {
     ESP_LOGI(TAG, "Mensagem enviada, ID: %d", message_id);
 }
 
-void mqtt_send_telemetry(char *msg) {
-    mqtt_send_message("v1/devices/me/telemetry", msg);
-}
+void mqtt_send_telemetry(char *msg) { mqtt_send_message("v1/devices/me/telemetry", msg); }
 
-void mqtt_send_attributes(char *msg) {
-    mqtt_send_message("v1/devices/me/attributes", msg);
+void mqtt_send_attributes(char *msg) { mqtt_send_message("v1/devices/me/attributes", msg); }
+
+void mqtt_send_request_response(int request_id) {
+    char topic[35];
+
+    sprintf(topic, "v1/devices/me/rpc/response/%d", request_id);
+    mqtt_send_message(topic, "{}");
 }

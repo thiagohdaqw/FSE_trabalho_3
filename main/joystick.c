@@ -17,8 +17,8 @@
 const static char *TAG = "JOYSTICK";
 
 #define JOYSTICK_ADC_UNIT ADC_UNIT_1
-#define JOYSTICK_X_CHANNEL ADC_CHANNEL_3
-#define JOYSTICK_Y_CHANNEL ADC_CHANNEL_6
+#define JOYSTICK_X_CHANNEL ADC_CHANNEL_0
+#define JOYSTICK_Y_CHANNEL ADC_CHANNEL_3
 #define JOYSTICK_ADC_ATTEN ADC_ATTEN_DB_11
 #define JOYSTICK_ADC_BITWIDTH ADC_BITWIDTH_DEFAULT
 #define JOYSTICK_SENSIBILITY 100
@@ -81,8 +81,8 @@ void joystick_read(void *params)
             y_percent = 100 * ((y_percent > 0) - (y_percent < 0));
         }
 
-        joystick->x_percent = x_percent;
-        joystick->y_percent = y_percent;
+        joystick->x_percent = y_percent;
+        joystick->y_percent = x_percent;
 
         ESP_LOGI(TAG, "X: %d %d percent, Y: %d %d percent", x, x_percent, y, y_percent);
 

@@ -10,6 +10,7 @@ idf_component_register(SRCS
                             "mqtt.c"
                             "wifi.c"
                             "telemetry.c"
+                            "commands.c"
                     INCLUDE_DIRS "."
                     REQUIRES
                         "esp32-DHT11"

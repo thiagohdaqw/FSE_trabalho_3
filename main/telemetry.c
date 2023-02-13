@@ -31,7 +31,7 @@ static void mqtt_loop(void *params) {
 
 void telemetry_send_car(State *state) {
     char message[100];
-
+ 
     temperature_read(state);
     sprintf(message,
         "{\"temperature\":%d,\"humidity\":%d,\"motor_x\":%d,\"motor_y\":%d,\"motor_duty\":%d}",
@@ -42,17 +42,6 @@ void telemetry_send_car(State *state) {
         state->motor.duty
     );
     mqtt_send_telemetry(message);
-}
-
-void telemetry_send_car_attributes(State *state) {
-    char message[50];
-
-    sprintf(message,
-        "{\"motor_deg\":%d}",
-        (state->motor.x != 0 ? (state->motor.x > 0 ? 90 : 270) : 0)
-        + (state->motor.y >= 0 ? 0 : 180)
-    );
-    mqtt_send_attributes(message);
 }
 
 void telemetry_send_joystick_status(int online) {
@@ -75,13 +64,25 @@ void telemetry_send_car_status(int online) {
     mqtt_send_attributes(message);
 }
 
-void telemetry_send_joystick_attributes(State *state) {
+void telemetry_send_car_attributes(State *state) {
     char message[50];
 
     sprintf(message,
-        "{\"joystick_deg\":%d}",
+        "{\"motor_deg\":%d,\"motor_mode\":%d}",
+        (state->motor.x != 0 ? (state->motor.x > 0 ? 90 : 270) : 0)
+        + (state->motor.y >= 0 ? 0 : 180),
+        state->mode
+    );
+    mqtt_send_attributes(message);
+}
+
+void telemetry_send_joystick_attributes(State *state) {
+    char message[50];
+    sprintf(message,
+        "{\"joystick_deg\":%d,\"joystick_mode\":%d}",
         (state->joystick.x_percent != 0 ? (state->joystick.x_percent > 0 ? 90 : 270) : 0)
-        + (state->joystick.y_percent >= 0 ? 0 : 180)
+        + (state->joystick.y_percent >= 0 ? 0 : 180),
+        state->mode
     );
     mqtt_send_attributes(message);
 }
