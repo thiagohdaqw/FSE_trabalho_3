@@ -11,6 +11,9 @@ idf_component_register(SRCS
                             "wifi.c"
                             "telemetry.c"
                             "commands.c"
+                            "nvsMem.c"
+                            "led_rgb.c"
+                           
                     INCLUDE_DIRS "."
                     REQUIRES
                         "esp32-DHT11"

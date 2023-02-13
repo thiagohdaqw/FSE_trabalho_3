@@ -12,6 +12,7 @@
 
 #include "motor.h"
 #include "states.h"
+#include "led_rgb.h"
 #include "joystick.h"
 #include "infrared.h"
 #include "telemetry.h"
@@ -34,6 +35,7 @@ void app_main(void) {
     nvs_init();
 
     telemetry_init(&state);
+    led_rgb_init();
 
 #ifdef CONFIG_CAR
     ESP_LOGI(TAG, "initiating as car controller");
