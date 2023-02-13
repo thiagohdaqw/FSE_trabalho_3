@@ -18,7 +18,7 @@
 #define TAG "TEMPERATURE"
 
 #define TEMPERATURE_GPIO 25
-#define TEMPERATURE_MAX_TRIES 10
+#define TEMPERATURE_MAX_TRIES 25
 
 void temperature_init() { DHT11_init(TEMPERATURE_GPIO); }
 
@@ -32,8 +32,6 @@ void temperature_read(State *state) {
             state->temperature = dht.temperature;
             state->humidity = dht.humidity;
             return;
-        } else {
-            ESP_LOGE(TAG, "Error reading temperature. Trying again...");
         }
     }
     ESP_LOGE(TAG, "Error reading temperature. Max tries(%d) reached", TEMPERATURE_MAX_TRIES);

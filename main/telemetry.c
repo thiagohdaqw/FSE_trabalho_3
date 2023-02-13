@@ -45,18 +45,13 @@ void telemetry_send_car(State *state) {
 }
 
 void telemetry_send_car_attributes(State *state) {
-    char message[100];
-
-    static int y_percent = 0;
-    y_percent = (y_percent + 25) % 100;
+    char message[50];
 
     sprintf(message,
-        "{\"motor_deg\":%d,\"car_mode\":%d,\"joystick_x\":%d,\"joystick_y\":%d}",
+        "{\"motor_deg\":%d,\"car_mode\":%d}",
         (state->motor.x != 0 ? (state->motor.x > 0 ? 90 : 270) : 0)
         + (state->motor.y >= 0 ? 0 : 180),
-        state->mode,
-        0,
-        y_percent
+        state->mode
     );
     mqtt_send_attributes(message);
 }
@@ -74,28 +69,6 @@ void telemetry_send_joystick_attributes(State *state) {
     mqtt_send_attributes(message);
 }
 
-void telemetry_send_joystick_status(int online, State *state) {
-    char message[30];
-
-    sprintf(message,
-        "{\"joystick_online\":%d}",
-        online
-    );
-    mqtt_send_attributes(message);
-    telemetry_send_joystick_attributes(state);
-}
-
-void telemetry_send_car_status(int online, State *state) {
-    char message[30];
-
-    sprintf(message,
-        "{\"car_online\":%d}",
-        online
-    );
-    mqtt_send_attributes(message);
-    telemetry_send_car_attributes(state);
-}
-
 void telemetry_send_joystick(State *state) {
     char message[100];
 
@@ -111,13 +84,6 @@ static void telemetry_loop(void *params) {
     State *state = (State *)params;
 
     if (xSemaphoreTake(mqttConnectionSemaphore, portMAX_DELAY)) {
-#if CONFIG_CAR
-        telemetry_send_car_status(true, state);
-#endif
-#if CONFIG_JOYSTICK
-        telemetry_send_joystick_status(true, state);
-#endif
-
         while (true) {
 #if CONFIG_CAR
             ESP_LOGI(TAG, "Sending car telemetry");
