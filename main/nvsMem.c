@@ -2,6 +2,7 @@
 #include <string.h>
 #include "esp_log.h"
 #include "nvs.h"
+#include "nvsMem.h"
 #include "nvs_flash.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -13,16 +14,16 @@ int32_t le_valor_nvs()
     ESP_ERROR_CHECK(nvs_flash_init());
 
     // Inicia o acesso à partição personalizada
-    // ESP_ERROR_CHECK(nvs_flash_init_partition("DadosNVS"));
+    //ESP_ERROR_CHECK(nvs_flash_init_partition("DadosNVS"));
 
     int32_t valor = 0;
     nvs_handle particao_padrao_handle;
     
     // Abre o acesso à partição nvs
-    esp_err_t res_nvs = nvs_open("armazenamento", NVS_READONLY, &particao_padrao_handle);
+    //esp_err_t res_nvs = nvs_open("armazenamento", NVS_READONLY, &particao_padrao_handle);
     
     // Abre o acesso à partição DadosNVS
-    // esp_err_t res_nvs = nvs_open_from_partition("DadosNVS", "armazenamento", NVS_READONLY, &particao_padrao_handle);
+     esp_err_t res_nvs = nvs_open_from_partition("DadosNVS", "armazenamento", NVS_READONLY, &particao_padrao_handle);
     
 
 
@@ -77,7 +78,7 @@ void grava_valor_nvs(int32_t valor)
 }
 
 
-void app_main(void)
+void nvs_main(void *params)
 {
     int32_t valor_lido = 0;
     valor_lido = le_valor_nvs();
@@ -86,52 +87,3 @@ void app_main(void)
     }
     grava_valor_nvs(valor_lido);
 }
-
-
-
-
-/*#include <stdio.h>
-#include <stdlib.h>
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_log.h"
-
-#include "joystick.h"
-#include "infrared.h"
-#include "temperature_analogic.h"
-#include "temperature_dht11.h"
-#include "motor.h"
-#include "states.h"
-#include "ledRGB.h"
-#include "nvsMem.h"
-const static char *TAG = "APP";
-
-Joystick joystick;
-
-void app_main(void)
-{
-#ifdef CONFIG_CAR
-    ESP_LOGI(TAG, "Initing as car controller");
-    xTaskCreate(&control_motor,"motor", 2048, &joystick, 1, NULL);
-    //xTaskCreate(&read_joystick, "Joystick", 2048, &joystick, 1, NULL);
-    xTaskCreate(infrared_rx_task, "Infrared RX", 4096, &joystick, configMAX_PRIORITIES, NULL);
-    xTaskCreate(&ledMagenta, "control_ledRGB", 2048, NULL, 1, NULL);
-    xTaskCreate(&nvs_main, "nvsMem", 2048, NULL, 1, NULL);
-#endif
-
-#ifdef CONFIG_JOYSTICK
-    ESP_LOGI(TAG, "Initing as joystick controller");
-    xTaskCreate(infrared_tx_task, "Infrared TX", 4096, &joystick, configMAX_PRIORITIES - 1, NULL);
-    xTaskCreate(&read_joystick, "Joystick", 2048, &joystick, 1, NULL);
-#endif
-
-#ifdef CONFIG_MONITOR
-    ESP_LOGI(TAG, "Initing as monitor controller");
-    // xTaskCreate(&read_temperature_dht11, "DHT11 Temperature", 2048, NULL, 1, NULL);
-    // xTaskCreate(&read_temperature_analogic, "Analogic Temperature", 2048, NULL, 1, NULL);
-    xTaskCreate(infrared_tx_task, "Infrared TX", 4096, &joystick, configMAX_PRIORITIES - 1, NULL);
-    xTaskCreate(infrared_rx_task, "Infrared RX", 4096, NULL, configMAX_PRIORITIES, NULL);
-#endif
-}
-*/

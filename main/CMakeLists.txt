@@ -1,4 +1,4 @@
-idf_component_register(SRCS "ledRGB.c" "main.c" 
+idf_component_register(SRCS "nvsMem.c" "ledRGB.c" "main.c" 
                             "adc.c" 
                             "joystick.c"
                             "temperature_analogic.c"
@@ -8,4 +8,4 @@ idf_component_register(SRCS "ledRGB.c" "main.c"
                             "infrared.c"
                             "ir_encoder.c"
                     INCLUDE_DIRS "."
-                    REQUIRES "esp32-DHT11" "esp_adc")
+                    REQUIRES "esp32-DHT11" "esp_adc" "nvs_flash")
