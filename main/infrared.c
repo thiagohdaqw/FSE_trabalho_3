@@ -5,119 +5,57 @@
 #include "esp_log.h"
 #include "driver/rmt_tx.h"
 #include "driver/rmt_rx.h"
+#include "esp_sleep.h"
+#include "driver/gpio.h"
+#include "driver/rtc_io.h"
+#include "esp32/rom/uart.h"
 
 #include "infrared.h"
 #include "ir_encoder.h"
+#include "ir_decoder.h"
 #include "states.h"
 
 #define IR_RESOLUTION_HZ 1000000 // 1MHz resolution, 1 tick = 1us
+
 #define IR_TX_GPIO_NUM 17
 #define IR_RX_GPIO_NUM 16
-#define IR_NEC_DECODE_MARGIN 200 // Tolerance for parsing RMT symbols into bit stream
-
-/**
- * @brief NEC timing spec
- */
-#define NEC_LEADING_CODE_DURATION_0 9000
-#define NEC_LEADING_CODE_DURATION_1 4500
-#define NEC_PAYLOAD_ZERO_DURATION_0 560
-#define NEC_PAYLOAD_ZERO_DURATION_1 560
-#define NEC_PAYLOAD_ONE_DURATION_0 560
-#define NEC_PAYLOAD_ONE_DURATION_1 1690
-#define NEC_REPEAT_CODE_DURATION_0 9000
-#define NEC_REPEAT_CODE_DURATION_1 2250
+#define BUTTON_GPIO_NUM 0
 
 #define TAG "INFRARED"
 
 static uint16_t code_address;
 static uint16_t code_command;
 
-static inline bool check_duration_in_range(uint32_t signal_duration, uint32_t spec_duration)
-{
-    return (signal_duration < (spec_duration + IR_NEC_DECODE_MARGIN)) &&
-           (signal_duration > (spec_duration - IR_NEC_DECODE_MARGIN));
-}
-
-static bool is_zero(rmt_symbol_word_t *rmt_nec_symbols)
-{
-    return check_duration_in_range(rmt_nec_symbols->duration0, NEC_PAYLOAD_ZERO_DURATION_0) &&
-           check_duration_in_range(rmt_nec_symbols->duration1, NEC_PAYLOAD_ZERO_DURATION_1);
-}
-
-static bool is_one(rmt_symbol_word_t *rmt_nec_symbols)
-{
-    return check_duration_in_range(rmt_nec_symbols->duration0, NEC_PAYLOAD_ONE_DURATION_0) &&
-           check_duration_in_range(rmt_nec_symbols->duration1, NEC_PAYLOAD_ONE_DURATION_1);
-}
-
-static bool decode_signal(rmt_symbol_word_t *rmt_nec_symbols)
-{
-    rmt_symbol_word_t *cur = rmt_nec_symbols;
-    uint16_t address = 0;
-    uint16_t command = 0;
-    bool valid_leading_code = check_duration_in_range(cur->duration0, NEC_LEADING_CODE_DURATION_0) &&
-                              check_duration_in_range(cur->duration1, NEC_LEADING_CODE_DURATION_1);
-    if (!valid_leading_code)
-    {
-        return false;
-    }
-    cur++;
-    for (int i = 0; i < 16; i++)
-    {
-        if (is_one(cur))
-        {
-            address |= 1 << i;
-        }
-        else if (is_zero(cur))
-        {
-            address &= ~(1 << i);
-        }
-        else
-        {
-            return false;
-        }
-        cur++;
-    }
-    for (int i = 0; i < 16; i++)
-    {
-        if (is_one(cur))
-        {
-            command |= 1 << i;
-        }
-        else if (is_zero(cur))
-        {
-            command &= ~(1 << i);
-        }
-        else
-        {
-            return false;
-        }
-        cur++;
-    }
-    // save address and command
-    code_address = address;
-    code_command = command;
-    return true;
-}
-
-static bool decode_signal_repeat(rmt_symbol_word_t *rmt_nec_symbols)
-{
-    return check_duration_in_range(rmt_nec_symbols->duration0, NEC_REPEAT_CODE_DURATION_0) &&
-           check_duration_in_range(rmt_nec_symbols->duration1, NEC_REPEAT_CODE_DURATION_1);
-}
+static int low_power_on = 0;
 
 static void parse_signal(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num, State *state)
 {
     switch (symbol_num)
     {
     case 34: // NEC normal frame
-        if (decode_signal(rmt_nec_symbols) && state != NULL)
+        if (decode_signal(rmt_nec_symbols, &code_address, &code_command) && joystick != NULL)
         {
+            int BUTTON_STATE = gpio_get_level(BUTTON_GPIO_NUM);
+            if (code_address == 0X01 && !BUTTON_STATE)
+            {
+                ESP_LOGW(TAG, "Exiting low power mode");
+                low_power_on = 0;
+            }
+            else if (code_address == 0X01 && !low_power_on)
+            {
+                ESP_LOGW(TAG, "Starting low power mode 1");
+                low_power_on = 1;
+                uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
+                esp_light_sleep_start();
+            }
+            else
+            {
             if (state->mode == IR_MODE) {
                 joystick_set_percent(&state->joystick, code_command & 0xFF, (code_command & 0xFEFE) >> 8);
             }
 
-            ESP_LOGI(TAG, "Address=%04X, Command=%d, X=%d, Y=%d\r\n\r\n", code_address, code_command, state->joystick.x_percent, state->joystick.y_percent);
+                ESP_LOGI(TAG, "Address=%04X, Command=%d, X=%d, Y=%d\r\n\r\n", code_address, code_command, joystick->x_percent, joystick->y_percent);
+            }
         }
         break;
     case 2: // NEC repeat frame
@@ -128,7 +66,6 @@ static void parse_signal(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num, 
         break;
     default:
         ESP_LOGW(TAG, "Unknown NEC frame\r\n\r\n");
-        break;
     }
 }
 
@@ -176,7 +113,6 @@ void infrared_tx_task(void *params)
 
     ESP_ERROR_CHECK(rmt_enable(tx_channel));
 
-
     ir_nec_scan_code_t scan_code = {
         .address = 0x0440,
         .command = 0,
@@ -184,11 +120,12 @@ void infrared_tx_task(void *params)
     while (1)
     {
         if (state->mode == IR_MODE) {
+            scan_code.address = state->joystick.power_switch ? 0x0440 : 0x01;
             scan_code.command = state->joystick.x_percent + (state->joystick.y_percent << 8);
             ESP_LOGI(TAG, "Sending joystick %d", scan_code.command);
             ESP_ERROR_CHECK(rmt_transmit(tx_channel, nec_encoder, &scan_code, sizeof(scan_code), &transmit_config));
         }
-        vTaskDelay(pdMS_TO_TICKS(500));
+        vTaskDelay(pdMS_TO_TICKS(250));
     }
 }
 
@@ -204,6 +141,10 @@ void infrared_rx_task(void *params)
         .mem_block_symbols = 64, // amount of RMT symbols that the channel can store at a time
         .gpio_num = IR_RX_GPIO_NUM,
     };
+
+    gpio_set_direction(BUTTON_GPIO_NUM, GPIO_MODE_INPUT);
+    gpio_wakeup_enable(BUTTON_GPIO_NUM, GPIO_INTR_LOW_LEVEL);
+    esp_sleep_enable_gpio_wakeup();
 
     rmt_channel_handle_t rx_channel = NULL;
     ESP_ERROR_CHECK(rmt_new_rx_channel(&rx_channel_cfg, &rx_channel));
@@ -227,18 +168,23 @@ void infrared_rx_task(void *params)
     // save the received RMT symbols
     rmt_symbol_word_t raw_symbols[64]; // 64 symbols should be sufficient for a standard NEC frame
     rmt_rx_done_event_data_t rx_data;
-    // ready to receive
+
     ESP_ERROR_CHECK(rmt_receive(rx_channel, raw_symbols, sizeof(raw_symbols), &receive_config));
     while (1)
     {
         if (xQueueReceive(receive_queue, &rx_data, pdMS_TO_TICKS(1000)) == pdPASS)
         {
-            // parse the receive symbols and print the result
-            parse_signal(rx_data.received_symbols, rx_data.num_symbols, NULL);
-            // start receive again
             ESP_ERROR_CHECK(rmt_receive(rx_channel, raw_symbols, sizeof(raw_symbols), &receive_config));
 
             parse_signal(rx_data.received_symbols, rx_data.num_symbols, state);
+        }
+
+        if (low_power_on)
+        {
+            ESP_LOGW(TAG, "Woke up");
+            ESP_LOGW(TAG, "Sleeping");
+            uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
+            esp_light_sleep_start();
         }
     }
 }

@@ -1,19 +1,19 @@
-idf_component_register(SRCS 
-                            "main.c" 
+idf_component_register(SRCS
+                            "main.c"
                             "temperature.c"
-                            "adc.c" 
+                            "adc.c"
                             "joystick.c"
                             "motor.c"
                             "states.h"
                             "infrared.c"
                             "ir_encoder.c"
+                            "ir_decoder.c"
                             "mqtt.c"
                             "wifi.c"
                             "telemetry.c"
                             "commands.c"
                             "nvs_mem.c"
                             "led_rgb.c"
-                           
                     INCLUDE_DIRS "."
                     REQUIRES
                         "esp32-DHT11"
@@ -22,3 +22,4 @@ idf_component_register(SRCS
                         "esp_wifi"
                         "esp_http_client"
                         "mqtt")
+")

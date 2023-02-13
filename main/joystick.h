@@ -4,6 +4,7 @@
 typedef struct {
     int x_percent;
     int y_percent;
+    int power_switch;
 } Joystick;
 
 void joystick_read(void *params);

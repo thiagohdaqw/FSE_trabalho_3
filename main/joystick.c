@@ -53,6 +53,7 @@ void joystick_set_percent(Joystick *joystick, int x_percent, int y_percent) {
 
 void joystick_read(void *params) {
     Joystick *joystick = (Joystick *)params;
+
     int adc_x, adc_x_last = 0, x, x_percent;
     int adc_y, adc_y_last = 0, y, y_percent;
 
@@ -64,22 +65,11 @@ void joystick_read(void *params) {
     gpio_set_direction(JOYSTICK_SWITCH, GPIO_MODE_INPUT);
     gpio_pulldown_dis(JOYSTICK_SWITCH);
     gpio_pullup_en(JOYSTICK_SWITCH);
-    gpio_wakeup_enable(JOYSTICK_SWITCH, GPIO_INTR_LOW_LEVEL);
-    esp_sleep_enable_gpio_wakeup();
 
     adc_init_calibration(&unit, JOYSTICK_ADC_ATTEN, JOYSTICK_ADC_BITWIDTH);
 
-    while (true) {
-        if (gpio_get_level(JOYSTICK_SWITCH) == 0) {
-            do {
-                vTaskDelay(pdMS_TO_TICKS(10));
-            } while (gpio_get_level(JOYSTICK_SWITCH) == 0);
-
-            ESP_LOGW(TAG, "Starting low energy mode");
-            uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
-            esp_light_sleep_start();
-        }
-
+    while (true)
+    {
         adc_x = adc_read(&unit, JOYSTICK_X_CHANNEL);
         adc_y = adc_read(&unit, JOYSTICK_Y_CHANNEL);
 
@@ -107,6 +97,7 @@ void joystick_read(void *params) {
         }
 
         joystick_set_percent(joystick, y_percent, x_percent);
+        joystick->power_switch = rtc_gpio_get_level(JOYSTICK_SWITCH);
 
         vTaskDelay(pdMS_TO_TICKS(250));
     }
