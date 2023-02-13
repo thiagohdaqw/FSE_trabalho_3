@@ -69,16 +69,16 @@ void joystick_read(void *params)
         }
 
         if (abs(x_percent) > 0 && abs(x_percent) < 30) {
-            x_percent = 30 * (x_percent > 0) - (x_percent < 0);
+            x_percent = 30 * ((x_percent > 0) - (x_percent < 0));
         }
         if (abs(x_percent) > 100) {
-            x_percent = 100 * (x_percent > 0) - (x_percent < 0);
+            x_percent = 100 * ((x_percent > 0) - (x_percent < 0));
         }
         if (abs(y_percent) > 0 && abs(y_percent) < 30) {
-            y_percent = 30 * (y_percent > 0) - (y_percent < 0);
+            y_percent = 30 * ((y_percent > 0) - (y_percent < 0));
         }
         if (abs(y_percent) > 100) {
-            y_percent = 100 * (y_percent > 0) - (y_percent < 0);
+            y_percent = 100 * ((y_percent > 0) - (y_percent < 0));
         }
 
         joystick->x_percent = x_percent;
