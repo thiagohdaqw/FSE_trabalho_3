@@ -45,24 +45,31 @@ void telemetry_send_car(State *state) {
 }
 
 void telemetry_send_car_attributes(State *state) {
-    char message[50];
+    char message[100];
+
+    static int y_percent = 0;
+    y_percent = (y_percent + 25) % 100;
 
     sprintf(message,
-        "{\"motor_deg\":%d,\"car_mode\":%d}",
+        "{\"motor_deg\":%d,\"car_mode\":%d,\"joystick_x\":%d,\"joystick_y\":%d}",
         (state->motor.x != 0 ? (state->motor.x > 0 ? 90 : 270) : 0)
         + (state->motor.y >= 0 ? 0 : 180),
-        state->mode
+        state->mode,
+        0,
+        y_percent
     );
     mqtt_send_attributes(message);
 }
 
 void telemetry_send_joystick_attributes(State *state) {
-    char message[50];
+    char message[100];
     sprintf(message,
-        "{\"joystick_deg\":%d,\"joystick_mode\":%d}",
+        "{\"joystick_deg\":%d,\"joystick_mode\":%d,\"joystick_x\":%d,\"joystick_y\":%d}",
         (state->joystick.x_percent != 0 ? (state->joystick.x_percent > 0 ? 90 : 270) : 0)
         + (state->joystick.y_percent >= 0 ? 0 : 180),
-        state->mode
+        state->mode,
+        state->joystick.x_percent,
+        state->joystick.y_percent
     );
     mqtt_send_attributes(message);
 }
@@ -97,7 +104,7 @@ void telemetry_send_joystick(State *state) {
         state->joystick.x_percent,
         state->joystick.y_percent
     );
-    mqtt_send_message("v1/devices/me/telemetry/joystick", message);
+    mqtt_send_telemetry(message);
 }
 
 static void telemetry_loop(void *params) {
@@ -134,7 +141,7 @@ void telemetry_init(State *state) {
     wifi_start();
 
 #if CONFIG_CAR
-    // temperature_init();
+    temperature_init();
 #endif
 
     ESP_LOGI(TAG, "initiating Telemetry");

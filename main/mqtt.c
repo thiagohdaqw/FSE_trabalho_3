@@ -29,6 +29,8 @@
 extern SemaphoreHandle_t mqttConnectionSemaphore;
 esp_mqtt_client_handle_t client;
 
+void mqtt_start();
+
 static void log_error_if_nonzero(const char *message, int error_code) {
     if (error_code != 0) {
         ESP_LOGE(TAG, "Last error %s: 0x%x", message, error_code);
@@ -46,13 +48,12 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         xSemaphoreGive(mqttConnectionSemaphore);
         esp_mqtt_client_subscribe(client, "v1/devices/me/rpc/request/+", 0);
 #ifdef CONFIG_CAR
-        esp_mqtt_client_subscribe(client, "v1/devices/me/telemetry/joystick", 0);
+        esp_mqtt_client_subscribe(client, "v1/devices/me/attributes", 0);
 #endif
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
         break;
-
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
         msg_id = esp_mqtt_client_publish(client, "/topic/qos0", "data", 0, 0, 0);

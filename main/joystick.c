@@ -2,21 +2,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "driver/gpio.h"
+#include "driver/rtc_io.h"
+#include "esp32/rom/uart.h"
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
+#include "esp_adc/adc_oneshot.h"
 #include "esp_log.h"
+#include "esp_sleep.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "soc/soc_caps.h"
-#include "esp_adc/adc_oneshot.h"
-#include "esp_adc/adc_cali.h"
-#include "esp_adc/adc_cali_scheme.h"
-#include "driver/gpio.h"
-#include "esp_sleep.h"
-#include "driver/rtc_io.h"
-#include "esp32/rom/uart.h"
 
 #include "adc.h"
-#include "states.h"
 #include "joystick.h"
+#include "states.h"
 
 const static char *TAG = "JOYSTICK";
 
@@ -51,8 +51,7 @@ void joystick_set_percent(Joystick *joystick, int x_percent, int y_percent) {
     ESP_LOGI(TAG, "X: %d percent, Y: %d percent", x_percent, y_percent);
 }
 
-void joystick_read(void *params)
-{
+void joystick_read(void *params) {
     Joystick *joystick = (Joystick *)params;
     int adc_x, adc_x_last = 0, x, x_percent;
     int adc_y, adc_y_last = 0, y, y_percent;
@@ -70,12 +69,9 @@ void joystick_read(void *params)
 
     adc_init_calibration(&unit, JOYSTICK_ADC_ATTEN, JOYSTICK_ADC_BITWIDTH);
 
-    while (true)
-    {
-        if (gpio_get_level(JOYSTICK_SWITCH) == 0)
-        {
-            do
-            {
+    while (true) {
+        if (gpio_get_level(JOYSTICK_SWITCH) == 0) {
+            do {
                 vTaskDelay(pdMS_TO_TICKS(10));
             } while (gpio_get_level(JOYSTICK_SWITCH) == 0);
 
@@ -95,32 +91,22 @@ void joystick_read(void *params)
         x = adc_x - 2048 + 115;
         y = adc_y - 2048 + 135;
 
-        if (x > JOYSTICK_SENSIBILITY)
-        {
+        if (x > JOYSTICK_SENSIBILITY) {
             x_percent = x * 100 / 2161;
-        }
-        else if (x < -JOYSTICK_SENSIBILITY)
-        {
+        } else if (x < -JOYSTICK_SENSIBILITY) {
             x_percent = x * 100 / 1933;
-        }
-        else
-        {
+        } else {
             x_percent = 0;
         }
-        if (y > JOYSTICK_SENSIBILITY)
-        {
+        if (y > JOYSTICK_SENSIBILITY) {
             y_percent = y * 100 / 2181;
-        }
-        else if (y < -JOYSTICK_SENSIBILITY)
-        {
+        } else if (y < -JOYSTICK_SENSIBILITY) {
             y_percent = y * 100 / 1913;
-        }
-        else
-        {
+        } else {
             y_percent = 0;
         }
 
-        joystick_set_percent(joystick, x_percent, y_percent);
+        joystick_set_percent(joystick, y_percent, x_percent);
 
         vTaskDelay(pdMS_TO_TICKS(250));
     }
