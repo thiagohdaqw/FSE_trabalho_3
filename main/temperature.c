@@ -31,6 +31,7 @@ void temperature_read(State *state) {
             ESP_LOGI(TAG, "Temperature %d, Humidity: %d", dht.temperature, dht.humidity);
             state->temperature = dht.temperature;
             state->humidity = dht.humidity;
+            return;
         } else {
             ESP_LOGE(TAG, "Error reading temperature. Trying again...");
         }
