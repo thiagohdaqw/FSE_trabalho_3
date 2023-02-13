@@ -1,4 +1,4 @@
-idf_component_register(SRCS "main.c" 
+idf_component_register(SRCS "ledRGB.c" "main.c" 
                             "adc.c" 
                             "joystick.c"
                             "temperature_analogic.c"
