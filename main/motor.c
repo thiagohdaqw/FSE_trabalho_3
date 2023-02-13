@@ -98,7 +98,7 @@ void motor_control(void *params) {
         ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, motor->duty);
         ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
 
-        ESP_LOGI("MOTOR", "Duty %d", motor->duty);
+        ESP_LOGI("MOTOR", "Duty %d X=%d Y=%d", motor->duty, motor->x, motor->y);
 
         vTaskDelay(pdMS_TO_TICKS(500));
     }

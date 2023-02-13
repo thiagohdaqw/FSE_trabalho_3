@@ -23,7 +23,7 @@
 void temperature_init() { DHT11_init(TEMPERATURE_GPIO); }
 
 void temperature_read(State *state) {
-    struct dht11_reading dht;
+    static struct dht11_reading dht;
 
     for (int i = 0; i < TEMPERATURE_MAX_TRIES; i++) {
         dht = DHT11_read();

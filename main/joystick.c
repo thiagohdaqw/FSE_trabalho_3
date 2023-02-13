@@ -26,6 +26,26 @@ const static char *TAG = "JOYSTICK";
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+void joystick_set_percent(Joystick *joystick, int x_percent, int y_percent) {
+    if (abs(x_percent) > 0 && abs(x_percent) < 30) {
+        x_percent = 30 * ((x_percent > 0) - (x_percent < 0));
+    }
+    if (abs(x_percent) > 100) {
+        x_percent = 100 * ((x_percent > 0) - (x_percent < 0));
+    }
+    if (abs(y_percent) > 0 && abs(y_percent) < 30) {
+        y_percent = 30 * ((y_percent > 0) - (y_percent < 0));
+    }
+    if (abs(y_percent) > 100) {
+        y_percent = 100 * ((y_percent > 0) - (y_percent < 0));
+    }
+
+    joystick->x_percent = x_percent;
+    joystick->y_percent = y_percent;
+
+    ESP_LOGI(TAG, "X: %d percent, Y: %d percent", x_percent, y_percent);
+}
+
 void joystick_read(void *params)
 {
     Joystick *joystick = (Joystick *)params;
@@ -68,23 +88,7 @@ void joystick_read(void *params)
             y_percent = 0;
         }
 
-        if (abs(x_percent) > 0 && abs(x_percent) < 30) {
-            x_percent = 30 * ((x_percent > 0) - (x_percent < 0));
-        }
-        if (abs(x_percent) > 100) {
-            x_percent = 100 * ((x_percent > 0) - (x_percent < 0));
-        }
-        if (abs(y_percent) > 0 && abs(y_percent) < 30) {
-            y_percent = 30 * ((y_percent > 0) - (y_percent < 0));
-        }
-        if (abs(y_percent) > 100) {
-            y_percent = 100 * ((y_percent > 0) - (y_percent < 0));
-        }
-
-        joystick->x_percent = y_percent;
-        joystick->y_percent = x_percent;
-
-        ESP_LOGI(TAG, "X: %d %d percent, Y: %d %d percent", x, x_percent, y, y_percent);
+        joystick_set_percent(joystick, x_percent, y_percent);
 
         vTaskDelay(pdMS_TO_TICKS(250));
     }

@@ -7,5 +7,6 @@ typedef struct {
 } Joystick;
 
 void joystick_read(void *params);
+void joystick_set_percent(Joystick *joystick, int x_percent, int y_percent);
 
 #endif
