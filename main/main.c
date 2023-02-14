@@ -27,7 +27,7 @@ void nvs_init() {
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
-    }
+    } // estado 
     ESP_ERROR_CHECK(ret);
 }
 
@@ -35,17 +35,18 @@ void app_main(void) {
     nvs_init();
 
     telemetry_init(&state);
-    led_rgb_init();
+    
+    xTaskCreate(&led_rgb_start, "led_rgb", 1024, &state, 1, NULL);
 
 #ifdef CONFIG_CAR
     ESP_LOGI(TAG, "initiating as car controller");
-    xTaskCreate(&motor_control, "motor", 2048, &state.joystick, 1, NULL);
-    xTaskCreate(infrared_rx_task, "Infrared RX", 4096, &state.joystick, configMAX_PRIORITIES, NULL);
+    //xTaskCreate(&motor_control, "motor", 2048, &state.joystick, 1, NULL);
+    //xTaskCreate(infrared_rx_task, "Infrared RX", 4096, &state.joystick, configMAX_PRIORITIES, NULL);
 #endif
 
 #ifdef CONFIG_JOYSTICK
-    ESP_LOGI(TAG, "initiating as joystick controller");
-    xTaskCreate(&infrared_tx_task, "Infrared TX", 4096, &state.joystick, configMAX_PRIORITIES - 1, NULL);
-    xTaskCreate(&joystick_read, "Joystick", 2048, &state.joystick, 1, NULL);
+  //  ESP_LOGI(TAG, "initiating as joystick controller");
+    // xTaskCreate(&infrared_tx_task, "Infrared TX", 4096, NULL, configMAX_PRIORITIES - 1, NULL);
+    //xTaskCreate(&joystick_read, "Joystick", 2048, &state.joystick, 1, NULL);
 #endif
 }
