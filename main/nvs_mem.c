@@ -70,8 +70,6 @@ void nvs_save_car_state(State *state) {
 
 void nvs_save_joystick_state(State *state) {
     nvs_save_attribute("mode", state->mode);
-    nvs_save_attribute("joystick_x_percent", state->joystick.x_percent);
-    nvs_save_attribute("joystick_y_percent", state->joystick.y_percent);
 }
 
 void nvs_init() {
@@ -116,14 +114,6 @@ void nvs_load_joystick_state(State *state) {
     if (nvs_load_attribute("mode", &value) > 0) {
         state->mode = (char)value;
         ESP_LOGI(TAG, "Mode (%d) was loaded successfuly", state->mode);
-    }
-    if (nvs_load_attribute("joystick_x_percent", &value) > 0) {
-        state->joystick.x_percent = (int)value;
-        ESP_LOGI(TAG, "motor_y(%d) value was loaded successfuly", state->joystick.x_percent);
-    }
-    if (nvs_load_attribute("joystick_y_percent", &value) > 0) {
-        state->joystick.y_percent = (int)value;
-        ESP_LOGI(TAG, "motor_duty(%d) value was loaded successfuly", state->joystick.y_percent);
     }
 }
 
