@@ -55,7 +55,7 @@ static void parse_signal(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num, 
             {
                 if (state->mode == IR_MODE)
                 {
-                    joystick_set_percent(&state->joystick, code_command & 0xFF, (code_command & 0xFEFE) >> 8);
+                    joystick_set_percent(&state->joystick, (int8_t)(code_command & 0xFF), (int8_t)((code_command & 0xFEFE) >> 8));
                 }
 
                 ESP_LOGI(TAG, "Address=%04X, Command=%d, X=%d, Y=%d\r\n\r\n", code_address, code_command, state->joystick.x_percent, state->joystick.y_percent);
