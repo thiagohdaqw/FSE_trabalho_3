@@ -17,7 +17,7 @@
 #include "infrared.h"
 #include "telemetry.h"
 #include "temperature.h"
-#include "nvsMem.h"
+#include "nvs_mem.h"
 
 #define TAG "APP"
 
@@ -26,6 +26,7 @@ State state;
 void app_main(void) {
     
     nvs_load_state(&state);
+    xTaskCreate(&nvs_save_state, "nvs persistence", 2048, &state, configMAX_PRIORITIES - 1, NULL);
 
     telemetry_init(&state);
     
@@ -33,13 +34,13 @@ void app_main(void) {
 
 #ifdef CONFIG_CAR
     ESP_LOGI(TAG, "initiating as car controller");
-    //xTaskCreate(&motor_control, "motor", 2048, &state.joystick, 1, NULL);
-    //xTaskCreate(infrared_rx_task, "Infrared RX", 4096, &state.joystick, configMAX_PRIORITIES, NULL);
+    xTaskCreate(&motor_control, "motor", 2048, &state.joystick, 1, NULL);
+    xTaskCreate(&infrared_rx_task, "Infrared RX", 4096, &state, configMAX_PRIORITIES, NULL);
 #endif
 
 #ifdef CONFIG_JOYSTICK
-  //  ESP_LOGI(TAG, "initiating as joystick controller");
-    // xTaskCreate(&infrared_tx_task, "Infrared TX", 4096, NULL, configMAX_PRIORITIES - 1, NULL);
-    //xTaskCreate(&joystick_read, "Joystick", 2048, &state.joystick, 1, NULL);
+    ESP_LOGI(TAG, "initiating as joystick controller");
+    xTaskCreate(&infrared_tx_task, "Infrared TX", 4096, &state, configMAX_PRIORITIES - 1, NULL);
+    xTaskCreate(&joystick_read, "Joystick", 2048, &state.joystick, 1, NULL);
 #endif
 }

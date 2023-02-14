@@ -38,7 +38,7 @@ void motor_control(void *params) {
     // Configuração do Canal A
     ledc_channel_config_t channel_config_a = {.gpio_num = MOTOR_A_PWM,
                                               .speed_mode = LEDC_LOW_SPEED_MODE,
-                                              .channel = LEDC_CHANNEL_0,
+                                              .channel = LEDC_CHANNEL_4,
                                               .timer_sel = LEDC_TIMER_0,
                                               .duty = 0,
                                               .hpoint = 0};
@@ -47,7 +47,7 @@ void motor_control(void *params) {
     // Configuração do Canal b
     ledc_channel_config_t channel_config_b = {.gpio_num = MOTOR_B_PWM,
                                               .speed_mode = LEDC_LOW_SPEED_MODE,
-                                              .channel = LEDC_CHANNEL_1,
+                                              .channel = LEDC_CHANNEL_5,
                                               .timer_sel = LEDC_TIMER_0,
                                               .duty = 0,
                                               .hpoint = 0};
@@ -92,11 +92,11 @@ void motor_control(void *params) {
             motor->y = 0;
         }
 
-        ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, motor->duty);
-        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+        ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_4, motor->duty);
+        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_4);
 
-        ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, motor->duty);
-        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
+        ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_5, motor->duty);
+        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_5);
 
         ESP_LOGI("MOTOR", "Duty %d X=%d Y=%d", motor->duty, motor->x, motor->y);
 

@@ -15,7 +15,6 @@
 #include "states.h"
 #include "telemetry.h"
 #include "temperature.h"
-#include "nvsMem.h"
 
 #define TAG "TELEMETRY"
 
@@ -43,7 +42,6 @@ void telemetry_send_car(State *state) {
         state->motor.duty
     );
     mqtt_send_telemetry(message);
-    nvs_save_car_state(state);
 }
 
 void telemetry_send_car_attributes(State *state) {

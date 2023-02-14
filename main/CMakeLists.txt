@@ -11,7 +11,7 @@ idf_component_register(SRCS
                             "wifi.c"
                             "telemetry.c"
                             "commands.c"
-                            "nvsMem.c"
+                            "nvs_mem.c"
                             "led_rgb.c"
                            
                     INCLUDE_DIRS "."
