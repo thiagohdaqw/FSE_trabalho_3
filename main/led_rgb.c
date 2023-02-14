@@ -75,7 +75,8 @@ void led_rgb_red(){
     ledc_set_fade_time_and_start(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 0, 1000, LEDC_FADE_WAIT_DONE);    
     ledc_set_fade_time_and_start(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, 0, 1000, LEDC_FADE_WAIT_DONE);        
     ledc_set_fade_time_and_start(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2, 0, 1000, LEDC_FADE_WAIT_DONE);
-    ledc_set_fade_time_and_start(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2, 255, 1000, LEDC_FADE_WAIT_DONE);    }
+    ledc_set_fade_time_and_start(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2, 255, 1000, LEDC_FADE_WAIT_DONE);
+}
 
 
 void led_rgb_cyan(){

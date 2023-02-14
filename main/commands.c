@@ -17,13 +17,6 @@ extern State state;
 static void commands_handle_wifi_ir_request(esp_mqtt_event_handle_t event) {
     ESP_LOGI(TAG, "Received wifi_ir command. TOPIC=%.*s", event->topic_len, event->topic);
     state.mode = state.mode == WIFI_MODE ? IR_MODE : WIFI_MODE;
-
-    if (state.mode == WIFI_MODE) {
-        led_rgb_blue();
-    }
-    if (state.mode == IR_MODE) {
-        led_rgb_red();
-    }
 }
 
 static void commands_joystick_position(char *joystick) {
