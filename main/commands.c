@@ -44,7 +44,7 @@ static int commands_handle_car_request(esp_mqtt_event_handle_t event) {
         commands_handle_wifi_ir_request(event);
         return 1;
     }
-    if ((command = strstr(event->data, "joystick_"))) {
+    if ((command = strstr(event->data, "joystick_")) && state.mode == WIFI_MODE) {
         commands_joystick_position(command);
         return 1;
     }
@@ -60,7 +60,7 @@ static int commands_handle_joystick_request(esp_mqtt_event_handle_t event) {
 }
 
 void commands_handle_request(esp_mqtt_event_handle_t event) {
-    ESP_LOGI(TAG, "Received command %.*s", event->topic_len, event->topic);
+    ESP_LOGW(TAG, "Received command %.*s", event->topic_len, event->topic);
 #ifdef CONFIG_CAR
     if (!commands_handle_car_request(event)) {
 #endif

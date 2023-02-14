@@ -47,9 +47,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         xSemaphoreGive(mqttConnectionSemaphore);
         esp_mqtt_client_subscribe(client, "v1/devices/me/rpc/request/+", 0);
-#ifdef CONFIG_CAR
-        esp_mqtt_client_subscribe(client, "v1/devices/me/attributes", 0);
-#endif
         break;
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
