@@ -4,8 +4,8 @@
 #include "motor.h"
 #include "joystick.h"
 
-#define WIFI_MODE 1
-#define IR_MODE 0
+#define WIFI_MODE 0
+#define IR_MODE 1
 
 typedef struct {
     Joystick joystick;

@@ -24,13 +24,17 @@
 State state;
 
 void app_main(void) {
-    
+    state.low_power = CONFIG_LOW_POWER;
+
     nvs_load_state(&state);
     xTaskCreate(&nvs_save_state, "nvs persistence", 2048, &state, configMAX_PRIORITIES - 1, NULL);
 
     telemetry_init(&state);
-    
+
     xTaskCreate(&led_rgb_start, "led_rgb", 1024, &state, 1, NULL);
+
+
+
 
 #ifdef CONFIG_CAR
     ESP_LOGI(TAG, "initiating as car controller");
