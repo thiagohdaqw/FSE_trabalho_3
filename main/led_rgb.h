@@ -6,7 +6,7 @@
 #define LEDRED      27
 
 void led_rgb_init();
-void led_rgb_color_on(int color);
+void led_rgb_colors_on(int color);
 void led_rgb_blue();   
 void led_rgb_green();    
 void led_rgb_red();
