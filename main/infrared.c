@@ -27,11 +27,10 @@
 #define NEC_REPEAT_CODE_DURATION_0 9000
 #define NEC_REPEAT_CODE_DURATION_1 2250
 
-static const char *TAG = "INFRARED";
+#define TAG "INFRARED"
 
 static uint16_t code_address;
 static uint16_t code_command;
-
 
 static inline bool check_duration_in_range(uint32_t signal_duration, uint32_t spec_duration)
 {
@@ -107,17 +106,18 @@ static bool decode_signal_repeat(rmt_symbol_word_t *rmt_nec_symbols)
            check_duration_in_range(rmt_nec_symbols->duration1, NEC_REPEAT_CODE_DURATION_1);
 }
 
-static void parse_signal(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num, Joystick *joystick)
+static void parse_signal(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num, State *state)
 {
     switch (symbol_num)
     {
     case 34: // NEC normal frame
-        if (decode_signal(rmt_nec_symbols) && joystick != NULL)
+        if (decode_signal(rmt_nec_symbols) && state != NULL)
         {
-            joystick->y_percent = code_command & 0xFF;
-            joystick->x_percent = (code_command & 0xFEFE) >> 8;
+            if (state->mode == IR_MODE) {
+                joystick_set_percent(&state->joystick, code_command & 0xFF, (code_command & 0xFEFE) >> 8);
+            }
 
-            ESP_LOGI(TAG, "Address=%04X, Command=%d, X=%d, Y=%d\r\n\r\n", code_address, code_command, joystick->x_percent, joystick->y_percent);
+            ESP_LOGI(TAG, "Address=%04X, Command=%d, X=%d, Y=%d\r\n\r\n", code_address, code_command, state->joystick.x_percent, state->joystick.y_percent);
         }
         break;
     case 2: // NEC repeat frame
@@ -143,7 +143,7 @@ static bool rmt_rx_done_callback(rmt_channel_handle_t channel, const rmt_rx_done
 
 void infrared_tx_task(void *params)
 {
-    Joystick *joystick = (Joystick *)params;
+    State *state = (State *)params;
 
     ESP_LOGI(TAG, "create RMT TX channel");
     rmt_tx_channel_config_t tx_channel_cfg = {
@@ -183,17 +183,18 @@ void infrared_tx_task(void *params)
     };
     while (1)
     {
-        scan_code.command = joystick->x_percent + (joystick->y_percent << 8);
-        ESP_LOGI(TAG, "Enviando %d", scan_code.command);
-        ESP_ERROR_CHECK(rmt_transmit(tx_channel, nec_encoder, &scan_code, sizeof(scan_code), &transmit_config));
-
+        if (state->mode == IR_MODE) {
+            scan_code.command = state->joystick.x_percent + (state->joystick.y_percent << 8);
+            ESP_LOGI(TAG, "Sending joystick %d", scan_code.command);
+            ESP_ERROR_CHECK(rmt_transmit(tx_channel, nec_encoder, &scan_code, sizeof(scan_code), &transmit_config));
+        }
         vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
 
 void infrared_rx_task(void *params)
 {
-    Joystick *joystick = (Joystick *)params;
+    State *state = (State *)params;
 
     ESP_LOGI(TAG, "create RMT RX channel");
 
@@ -237,7 +238,7 @@ void infrared_rx_task(void *params)
             // start receive again
             ESP_ERROR_CHECK(rmt_receive(rx_channel, raw_symbols, sizeof(raw_symbols), &receive_config));
 
-            parse_signal(rx_data.received_symbols, rx_data.num_symbols, joystick);
+            parse_signal(rx_data.received_symbols, rx_data.num_symbols, state);
         }
     }
 }
