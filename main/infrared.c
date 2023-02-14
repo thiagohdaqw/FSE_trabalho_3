@@ -187,12 +187,6 @@ void infrared_rx_task(void *params)
         if (state->low_power)
         {
             ESP_LOGW(TAG, "Woke up");
-            wifi_start();
-            mqtt_start();
-            telemetry_send_car_attributes(state);
-            ESP_LOGW(TAG, "Sleeping");
-            uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
-            esp_light_sleep_start();
         }
     }
 }

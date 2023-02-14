@@ -11,6 +11,8 @@
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
+#include "esp_sleep.h"
+#include "esp32/rom/uart.h"
 
 #include "lwip/dns.h"
 #include "lwip/netdb.h"
@@ -21,11 +23,13 @@
 
 #include "commands.h"
 #include "mqtt.h"
+#include "states.h"
 
 #define TAG "MQTT"
 #define MQTT_HOST CONFIG_MQTT_HOST
 #define MQTT_TOKEN CONFIG_MQTT_TOKEN
 
+extern State state;
 extern SemaphoreHandle_t mqttConnectionSemaphore;
 esp_mqtt_client_handle_t client;
 
@@ -91,6 +95,12 @@ void mqtt_start() {
 void mqtt_send_message(char *topic, char *msg) {
     int message_id = esp_mqtt_client_publish(client, topic, msg, 0, 1, 0);
     ESP_LOGI(TAG, "Mensagem enviada, ID: %d", message_id);
+            if(state.low_power){
+
+            ESP_LOGW(TAG, "Sleeping");
+            uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
+            esp_light_sleep_start();
+        }
 }
 
 void mqtt_send_telemetry(char *msg) { mqtt_send_message("v1/devices/me/telemetry", msg); }
