@@ -17,22 +17,15 @@
 #include "infrared.h"
 #include "telemetry.h"
 #include "temperature.h"
+#include "nvsMem.h"
 
 #define TAG "APP"
 
 State state;
 
-void nvs_init() {
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    } // estado 
-    ESP_ERROR_CHECK(ret);
-}
-
 void app_main(void) {
-    nvs_init();
+    
+    nvs_load_state(&state);
 
     telemetry_init(&state);
     
