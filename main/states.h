@@ -4,8 +4,8 @@
 #include "motor.h"
 #include "joystick.h"
 
-#define WIFI_MODE 0
-#define IR_MODE 1
+#define WIFI_MODE 1
+#define IR_MODE 0
 
 typedef struct {
     Joystick joystick;
@@ -13,6 +13,7 @@ typedef struct {
     int temperature;
     int humidity;
     char mode;
+    int low_power;
 } State;
 
 #endif

@@ -97,7 +97,7 @@ void joystick_read(void *params) {
         }
 
         joystick_set_percent(joystick, y_percent, x_percent);
-        joystick->power_switch = rtc_gpio_get_level(JOYSTICK_SWITCH);
+        joystick->power_switch = gpio_get_level(JOYSTICK_SWITCH);
 
         vTaskDelay(pdMS_TO_TICKS(250));
     }

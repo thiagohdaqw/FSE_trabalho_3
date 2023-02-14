@@ -14,6 +14,9 @@
 #include "ir_encoder.h"
 #include "ir_decoder.h"
 #include "states.h"
+#include "telemetry.h"
+#include "wifi.h"
+#include "mqtt.h"
 
 #define IR_RESOLUTION_HZ 1000000 // 1MHz resolution, 1 tick = 1us
 
@@ -26,35 +29,36 @@
 static uint16_t code_address;
 static uint16_t code_command;
 
-static int low_power_on = 0;
-
 static void parse_signal(rmt_symbol_word_t *rmt_nec_symbols, size_t symbol_num, State *state)
 {
     switch (symbol_num)
     {
     case 34: // NEC normal frame
-        if (decode_signal(rmt_nec_symbols, &code_address, &code_command) && joystick != NULL)
+        if (decode_signal(rmt_nec_symbols, &code_address, &code_command) && state != NULL)
         {
             int BUTTON_STATE = gpio_get_level(BUTTON_GPIO_NUM);
             if (code_address == 0X01 && !BUTTON_STATE)
             {
                 ESP_LOGW(TAG, "Exiting low power mode");
-                low_power_on = 0;
+                state->low_power = 0;
+                // wifi_start();
+                mqtt_start();
             }
-            else if (code_address == 0X01 && !low_power_on)
+            else if (code_address == 0X01 && !state->low_power)
             {
                 ESP_LOGW(TAG, "Starting low power mode 1");
-                low_power_on = 1;
+                state->low_power = 1;
                 uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
                 esp_light_sleep_start();
             }
             else
             {
-            if (state->mode == IR_MODE) {
-                joystick_set_percent(&state->joystick, code_command & 0xFF, (code_command & 0xFEFE) >> 8);
-            }
+                if (state->mode == IR_MODE)
+                {
+                    joystick_set_percent(&state->joystick, code_command & 0xFF, (code_command & 0xFEFE) >> 8);
+                }
 
-                ESP_LOGI(TAG, "Address=%04X, Command=%d, X=%d, Y=%d\r\n\r\n", code_address, code_command, joystick->x_percent, joystick->y_percent);
+                ESP_LOGI(TAG, "Address=%04X, Command=%d, X=%d, Y=%d\r\n\r\n", code_address, code_command, state->joystick.x_percent, state->joystick.y_percent);
             }
         }
         break;
@@ -119,7 +123,8 @@ void infrared_tx_task(void *params)
     };
     while (1)
     {
-        if (state->mode == IR_MODE) {
+        if (state->mode == IR_MODE)
+        {
             scan_code.address = state->joystick.power_switch ? 0x0440 : 0x01;
             scan_code.command = state->joystick.x_percent + (state->joystick.y_percent << 8);
             ESP_LOGI(TAG, "Sending joystick %d", scan_code.command);
@@ -179,9 +184,12 @@ void infrared_rx_task(void *params)
             parse_signal(rx_data.received_symbols, rx_data.num_symbols, state);
         }
 
-        if (low_power_on)
+        if (state->low_power)
         {
             ESP_LOGW(TAG, "Woke up");
+            wifi_start();
+            mqtt_start();
+            telemetry_send_car_attributes(state);
             ESP_LOGW(TAG, "Sleeping");
             uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
             esp_light_sleep_start();

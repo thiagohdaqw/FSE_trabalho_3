@@ -22,4 +22,3 @@ idf_component_register(SRCS
                         "esp_wifi"
                         "esp_http_client"
                         "mqtt")
-")
