@@ -18,7 +18,7 @@
 #define TAG "TEMPERATURE"
 
 #define TEMPERATURE_GPIO 25
-#define TEMPERATURE_MAX_TRIES 25
+#define TEMPERATURE_MAX_TRIES 100
 
 void temperature_init() { DHT11_init(TEMPERATURE_GPIO); }
 

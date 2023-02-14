@@ -35,12 +35,13 @@ void app_main(void) {
     nvs_init();
 
     telemetry_init(&state);
-    led_rgb_init();
+    
+    xTaskCreate(&led_rgb_start, "led_rgb", 1024, &state, 1, NULL);
 
 #ifdef CONFIG_CAR
     ESP_LOGI(TAG, "initiating as car controller");
     xTaskCreate(&motor_control, "motor", 2048, &state.joystick, 1, NULL);
-    xTaskCreate(infrared_rx_task, "Infrared RX", 4096, &state, configMAX_PRIORITIES, NULL);
+    xTaskCreate(&infrared_rx_task, "Infrared RX", 4096, &state, configMAX_PRIORITIES, NULL);
 #endif
 
 #ifdef CONFIG_JOYSTICK
