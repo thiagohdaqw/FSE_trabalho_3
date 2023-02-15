@@ -22,12 +22,15 @@
 
 void temperature_init() { DHT11_init(TEMPERATURE_GPIO); }
 
-void temperature_read(State *state) {
+void temperature_read(State *state)
+{
     static struct dht11_reading dht;
 
-    for (int i = 0; i < TEMPERATURE_MAX_TRIES; i++) {
+    for (int i = 0; i < TEMPERATURE_MAX_TRIES; i++)
+    {
         dht = DHT11_read();
-        if (dht.status == DHT11_OK) {
+        if (dht.status == DHT11_OK)
+        {
             ESP_LOGI(TAG, "Temperature %d, Humidity: %d", dht.temperature, dht.humidity);
             state->temperature = dht.temperature;
             state->humidity = dht.humidity;

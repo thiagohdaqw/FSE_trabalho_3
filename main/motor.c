@@ -16,7 +16,8 @@
 #define MOTOR_B1 18
 #define MOTOR_B2 5
 
-void motor_control(void *params) {
+void motor_control(void *params)
+{
     State *state = (State *)params;
     Joystick *joystick = &state->joystick;
     Motor *motor = &state->motor;
@@ -53,16 +54,21 @@ void motor_control(void *params) {
                                               .hpoint = 0};
     ESP_ERROR_CHECK(ledc_channel_config(&channel_config_b));
 
-    while (true) {
-        if (joystick->y_percent != 0) {
+    while (true)
+    {
+        if (joystick->y_percent != 0)
+        {
             motor->duty = abs(joystick->y_percent) * 255 / 100;
-            if (joystick->y_percent > 0) {
+            if (joystick->y_percent > 0)
+            {
                 gpio_set_level(MOTOR_A1, 1);
                 gpio_set_level(MOTOR_A2, 0);
                 gpio_set_level(MOTOR_B1, 1);
                 gpio_set_level(MOTOR_B2, 0);
                 motor->y = 1;
-            } else {
+            }
+            else
+            {
                 gpio_set_level(MOTOR_A1, 0);
                 gpio_set_level(MOTOR_A2, 1);
                 gpio_set_level(MOTOR_B1, 0);
@@ -70,15 +76,20 @@ void motor_control(void *params) {
                 motor->y = -1;
             }
             motor->x = 0;
-        } else if (joystick->x_percent != 0) {
+        }
+        else if (joystick->x_percent != 0)
+        {
             motor->duty = abs(joystick->x_percent) * 255 / 100;
-            if (joystick->x_percent > 0) {
+            if (joystick->x_percent > 0)
+            {
                 gpio_set_level(MOTOR_A1, 0);
                 gpio_set_level(MOTOR_A2, 1);
                 gpio_set_level(MOTOR_B1, 1);
                 gpio_set_level(MOTOR_B2, 0);
                 motor->x = 1;
-            } else {
+            }
+            else
+            {
                 gpio_set_level(MOTOR_A1, 1);
                 gpio_set_level(MOTOR_A2, 0);
                 gpio_set_level(MOTOR_B1, 0);
@@ -86,7 +97,9 @@ void motor_control(void *params) {
                 motor->x = -1;
             }
             motor->y = 0;
-        } else {
+        }
+        else
+        {
             motor->duty = 0;
             motor->x = 0;
             motor->y = 0;

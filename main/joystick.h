@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-typedef struct {
+typedef struct
+{
     int8_t x_percent;
     int8_t y_percent;
     int power_switch;

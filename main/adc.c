@@ -125,9 +125,11 @@ void adc_init_calibration(Unit *unit, adc_atten_t atten, int bitwidth)
     unit->has_calibration = adc_calibration_init(unit->number, atten, &unit->calibration_handle, bitwidth);
 }
 
-void adc_deinit(Unit unit) {
+void adc_deinit(Unit unit)
+{
     ESP_ERROR_CHECK(adc_oneshot_del_unit(unit.handle));
-    if (unit.has_calibration) {
+    if (unit.has_calibration)
+    {
         adc_calibration_deinit(unit.calibration_handle);
     }
 }

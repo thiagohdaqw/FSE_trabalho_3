@@ -9,10 +9,11 @@
 
 static const char *TAG = "nec_encoder";
 
-typedef struct {
-    rmt_encoder_t base;           // the base "class", declares the standard encoder interface
-    rmt_encoder_t *copy_encoder;  // use the copy_encoder to encode the leading and ending pulse
-    rmt_encoder_t *bytes_encoder; // use the bytes_encoder to encode the address and command data
+typedef struct
+{
+    rmt_encoder_t base;                   // the base "class", declares the standard encoder interface
+    rmt_encoder_t *copy_encoder;          // use the copy_encoder to encode the leading and ending pulse
+    rmt_encoder_t *bytes_encoder;         // use the bytes_encoder to encode the address and command data
     rmt_symbol_word_t nec_leading_symbol; // NEC leading code with RMT representation
     rmt_symbol_word_t nec_ending_symbol;  // NEC ending code with RMT representation
     int state;
@@ -27,34 +28,41 @@ static size_t rmt_encode_ir_nec(rmt_encoder_t *encoder, rmt_channel_handle_t cha
     ir_nec_scan_code_t *scan_code = (ir_nec_scan_code_t *)primary_data;
     rmt_encoder_handle_t copy_encoder = nec_encoder->copy_encoder;
     rmt_encoder_handle_t bytes_encoder = nec_encoder->bytes_encoder;
-    switch (nec_encoder->state) {
+    switch (nec_encoder->state)
+    {
     case 0: // send leading code
         encoded_symbols += copy_encoder->encode(copy_encoder, channel, &nec_encoder->nec_leading_symbol,
                                                 sizeof(rmt_symbol_word_t), &session_state);
-        if (session_state & RMT_ENCODING_COMPLETE) {
+        if (session_state & RMT_ENCODING_COMPLETE)
+        {
             nec_encoder->state = 1; // we can only switch to next state when current encoder finished
         }
-        if (session_state & RMT_ENCODING_MEM_FULL) {
+        if (session_state & RMT_ENCODING_MEM_FULL)
+        {
             state |= RMT_ENCODING_MEM_FULL;
             goto out; // yield if there's no free space to put other encoding artifacts
         }
     // fall-through
     case 1: // send address
         encoded_symbols += bytes_encoder->encode(bytes_encoder, channel, &scan_code->address, sizeof(uint16_t), &session_state);
-        if (session_state & RMT_ENCODING_COMPLETE) {
+        if (session_state & RMT_ENCODING_COMPLETE)
+        {
             nec_encoder->state = 2; // we can only switch to next state when current encoder finished
         }
-        if (session_state & RMT_ENCODING_MEM_FULL) {
+        if (session_state & RMT_ENCODING_MEM_FULL)
+        {
             state |= RMT_ENCODING_MEM_FULL;
             goto out; // yield if there's no free space to put other encoding artifacts
         }
     // fall-through
     case 2: // send command
         encoded_symbols += bytes_encoder->encode(bytes_encoder, channel, &scan_code->command, sizeof(uint16_t), &session_state);
-        if (session_state & RMT_ENCODING_COMPLETE) {
+        if (session_state & RMT_ENCODING_COMPLETE)
+        {
             nec_encoder->state = 3; // we can only switch to next state when current encoder finished
         }
-        if (session_state & RMT_ENCODING_MEM_FULL) {
+        if (session_state & RMT_ENCODING_MEM_FULL)
+        {
             state |= RMT_ENCODING_MEM_FULL;
             goto out; // yield if there's no free space to put other encoding artifacts
         }
@@ -62,11 +70,13 @@ static size_t rmt_encode_ir_nec(rmt_encoder_t *encoder, rmt_channel_handle_t cha
     case 3: // send ending code
         encoded_symbols += copy_encoder->encode(copy_encoder, channel, &nec_encoder->nec_ending_symbol,
                                                 sizeof(rmt_symbol_word_t), &session_state);
-        if (session_state & RMT_ENCODING_COMPLETE) {
+        if (session_state & RMT_ENCODING_COMPLETE)
+        {
             nec_encoder->state = 0; // back to the initial encoding session
             state |= RMT_ENCODING_COMPLETE;
         }
-        if (session_state & RMT_ENCODING_MEM_FULL) {
+        if (session_state & RMT_ENCODING_MEM_FULL)
+        {
             state |= RMT_ENCODING_MEM_FULL;
             goto out; // yield if there's no free space to put other encoding artifacts
         }
@@ -109,13 +119,13 @@ esp_err_t rmt_new_ir_nec_encoder(const ir_nec_encoder_config_t *config, rmt_enco
     ESP_GOTO_ON_ERROR(rmt_new_copy_encoder(&copy_encoder_config, &nec_encoder->copy_encoder), err, TAG, "create copy encoder failed");
 
     // construct the leading code and ending code with RMT symbol format
-    nec_encoder->nec_leading_symbol = (rmt_symbol_word_t) {
+    nec_encoder->nec_leading_symbol = (rmt_symbol_word_t){
         .level0 = 1,
         .duration0 = 9000ULL * config->resolution / 1000000,
         .level1 = 0,
         .duration1 = 4500ULL * config->resolution / 1000000,
     };
-    nec_encoder->nec_ending_symbol = (rmt_symbol_word_t) {
+    nec_encoder->nec_ending_symbol = (rmt_symbol_word_t){
         .level0 = 1,
         .duration0 = 560 * config->resolution / 1000000,
         .level1 = 0,
@@ -131,7 +141,7 @@ esp_err_t rmt_new_ir_nec_encoder(const ir_nec_encoder_config_t *config, rmt_enco
         },
         .bit1 = {
             .level0 = 1,
-            .duration0 = 560 * config->resolution / 1000000,  // T1H=560us
+            .duration0 = 560 * config->resolution / 1000000, // T1H=560us
             .level1 = 0,
             .duration1 = 1690 * config->resolution / 1000000, // T1L=1690us
         },
@@ -141,11 +151,14 @@ esp_err_t rmt_new_ir_nec_encoder(const ir_nec_encoder_config_t *config, rmt_enco
     *ret_encoder = &nec_encoder->base;
     return ESP_OK;
 err:
-    if (nec_encoder) {
-        if (nec_encoder->bytes_encoder) {
+    if (nec_encoder)
+    {
+        if (nec_encoder->bytes_encoder)
+        {
             rmt_del_encoder(nec_encoder->bytes_encoder);
         }
-        if (nec_encoder->copy_encoder) {
+        if (nec_encoder->copy_encoder)
+        {
             rmt_del_encoder(nec_encoder->copy_encoder);
         }
         free(nec_encoder);

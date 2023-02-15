@@ -58,33 +58,36 @@ void led_rgb_init()
         .hpoint = 0};
     ESP_ERROR_CHECK(ledc_channel_config(&channel_config_red));
 
-//    ledc_fade_func_install(0);
+    //    ledc_fade_func_install(0);
 }
 
-void led_rgb_set_mode(State *state, int duty){
-    if (state->mode == WIFI_MODE){
-            ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty);
-            ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);        
-    } 
-    if (state->mode == IR_MODE) {
-            ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2, duty);
-            ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2);        
+void led_rgb_set_mode(State *state, int duty)
+{
+    if (state->mode == WIFI_MODE)
+    {
+        ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, duty);
+        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+    }
+    if (state->mode == IR_MODE)
+    {
+        ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2, duty);
+        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2);
     }
 }
 
 void led_rgb_start(void *params)
 {
     State *state = (State *)params;
-    
+
     led_rgb_init();
     while (true)
     {
         ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, 0);
         ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1, 0);
         ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2, 0);
-        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);        
-        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);        
-        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2);        
+        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_1);
+        ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_2);
 
         for (int i = 0; i < 255; i++)
         {
@@ -93,7 +96,7 @@ void led_rgb_start(void *params)
         }
         for (int i = 255; i > 0; i--)
         {
-            led_rgb_set_mode(state,  i);
+            led_rgb_set_mode(state, i);
             vTaskDelay(10 / portTICK_PERIOD_MS);
         }
     }

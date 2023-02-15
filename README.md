@@ -19,8 +19,9 @@ Este trabalho tem por objetivo a implementação de um sistema (que simula) o um
 ## 2. Interface
 
 <img src="assets/dashboard.png" width="1000"/><hr>
-<img src="assets/prototype.png" width="500"/><hr>
+<img src="assets/car.jpg" width="500"/><hr>
+<img src="assets/joystick.jpg" height="500"/><hr>
 
 ## 3. Apresentação
 
-[![Video da apresentacao](https://img.youtube.com/vi/<id>/0.jpg)](https://www.youtube.com/watch?v=<id>)
+[![Video da apresentacao](https://img.youtube.com/vi/Wbp2XE3p5rM/0.jpg)](https://youtu.be/Wbp2XE3p5rM)

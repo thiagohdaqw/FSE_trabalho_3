@@ -35,18 +35,22 @@ esp_mqtt_client_handle_t client;
 
 void mqtt_start();
 
-static void log_error_if_nonzero(const char *message, int error_code) {
-    if (error_code != 0) {
+static void log_error_if_nonzero(const char *message, int error_code)
+{
+    if (error_code != 0)
+    {
         ESP_LOGE(TAG, "Last error %s: 0x%x", message, error_code);
     }
 }
 
-static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
+static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
+{
     ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, (int)event_id);
     esp_mqtt_event_handle_t event = event_data;
     esp_mqtt_client_handle_t client = event->client;
     int msg_id;
-    switch ((esp_mqtt_event_id_t)event_id) {
+    switch ((esp_mqtt_event_id_t)event_id)
+    {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
         xSemaphoreGive(mqttConnectionSemaphore);
@@ -72,7 +76,8 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         break;
     case MQTT_EVENT_ERROR:
         ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
-        if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT) {
+        if (event->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT)
+        {
             log_error_if_nonzero("reported from esp-tls", event->error_handle->esp_tls_last_esp_err);
             log_error_if_nonzero("reported from tls stack", event->error_handle->esp_tls_stack_err);
             log_error_if_nonzero("captured as transport's socket errno", event->error_handle->esp_transport_sock_errno);
@@ -85,22 +90,25 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     }
 }
 
-void mqtt_start() {
+void mqtt_start()
+{
     esp_mqtt_client_config_t mqtt_config = {.broker.address.uri = MQTT_HOST, .credentials.username = MQTT_TOKEN};
     client = esp_mqtt_client_init(&mqtt_config);
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(client);
 }
 
-void mqtt_send_message(char *topic, char *msg) {
+void mqtt_send_message(char *topic, char *msg)
+{
     int message_id = esp_mqtt_client_publish(client, topic, msg, 0, 1, 0);
     ESP_LOGI(TAG, "Mensagem enviada, ID: %d", message_id);
-            if(state.low_power){
+    if (state.low_power)
+    {
 
-            ESP_LOGW(TAG, "Sleeping");
-            uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
-            esp_light_sleep_start();
-        }
+        ESP_LOGW(TAG, "Sleeping");
+        uart_tx_wait_idle(CONFIG_ESP_CONSOLE_UART_NUM);
+        esp_light_sleep_start();
+    }
 }
 
 void mqtt_send_telemetry(char *msg) { mqtt_send_message("v1/devices/me/telemetry", msg); }

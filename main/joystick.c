@@ -31,17 +31,22 @@ const static char *TAG = "JOYSTICK";
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-void joystick_set_percent(Joystick *joystick, int x_percent, int y_percent) {
-    if (abs(x_percent) > 0 && abs(x_percent) < 30) {
+void joystick_set_percent(Joystick *joystick, int x_percent, int y_percent)
+{
+    if (abs(x_percent) > 0 && abs(x_percent) < 30)
+    {
         x_percent = 30 * ((x_percent > 0) - (x_percent < 0));
     }
-    if (abs(x_percent) > 100) {
+    if (abs(x_percent) > 100)
+    {
         x_percent = 100 * ((x_percent > 0) - (x_percent < 0));
     }
-    if (abs(y_percent) > 0 && abs(y_percent) < 30) {
+    if (abs(y_percent) > 0 && abs(y_percent) < 30)
+    {
         y_percent = 30 * ((y_percent > 0) - (y_percent < 0));
     }
-    if (abs(y_percent) > 100) {
+    if (abs(y_percent) > 100)
+    {
         y_percent = 100 * ((y_percent > 0) - (y_percent < 0));
     }
 
@@ -51,7 +56,8 @@ void joystick_set_percent(Joystick *joystick, int x_percent, int y_percent) {
     ESP_LOGI(TAG, "X: %d percent, Y: %d percent", x_percent, y_percent);
 }
 
-void joystick_read(void *params) {
+void joystick_read(void *params)
+{
     Joystick *joystick = (Joystick *)params;
 
     int adc_x, adc_x_last = 0, x, x_percent;
@@ -81,18 +87,28 @@ void joystick_read(void *params) {
         x = adc_x - 2048 + 115;
         y = adc_y - 2048 + 135;
 
-        if (x > JOYSTICK_SENSIBILITY) {
+        if (x > JOYSTICK_SENSIBILITY)
+        {
             x_percent = x * 100 / 2161;
-        } else if (x < -JOYSTICK_SENSIBILITY) {
+        }
+        else if (x < -JOYSTICK_SENSIBILITY)
+        {
             x_percent = x * 100 / 1933;
-        } else {
+        }
+        else
+        {
             x_percent = 0;
         }
-        if (y > JOYSTICK_SENSIBILITY) {
+        if (y > JOYSTICK_SENSIBILITY)
+        {
             y_percent = y * 100 / 2181;
-        } else if (y < -JOYSTICK_SENSIBILITY) {
+        }
+        else if (y < -JOYSTICK_SENSIBILITY)
+        {
             y_percent = y * 100 / 1913;
-        } else {
+        }
+        else
+        {
             y_percent = 0;
         }
 

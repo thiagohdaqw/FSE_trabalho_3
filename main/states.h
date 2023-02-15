@@ -7,7 +7,8 @@
 #define WIFI_MODE 0
 #define IR_MODE 1
 
-typedef struct {
+typedef struct
+{
     Joystick joystick;
     Motor motor;
     int temperature;
